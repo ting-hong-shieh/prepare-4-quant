@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
+    "@google/genai": "^2.18.0",
     "better-sqlite3": "^11.10.0",
     "katex": "^0.16.11",
     "next": "^15.4.6",
