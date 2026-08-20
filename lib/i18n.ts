@@ -15,6 +15,10 @@ export interface LocalisedProblem {
   solution: string | null;
   hints: string[];
   figures: Figure[];
+  /** 0 while the transcription has not been checked against the scan. */
+  verified: 0 | 1;
+  /** Page in the scan, so the reader can check the transcription in one tap. */
+  page: number | null;
 }
 
 export const LANGS: Lang[] = ['en', 'zh'];
@@ -29,6 +33,8 @@ export function localise(p: Problem, lang: Lang): LocalisedProblem & { partial: 
     difficulty: p.difficulty,
     answer: p.answer,
     figures: p.figures ?? [],
+    verified: p.verified,
+    page: p.page,
     title: (en ? p.title_en : p.title) || p.title || p.title_en || '',
     statement: (en ? p.statement_en : p.statement_zh) || p.statement_zh || p.statement_en || '',
     solution: (en ? p.solution_en : p.solution_md) || p.solution_md || p.solution_en || null,
@@ -65,6 +71,11 @@ const EN = {
   wrong: 'wrong',
   revealed: 'revealed',
 
+  unchecked: 'unchecked transcription',
+  checkPrompt: 'Does this match the book?',
+  viewScan: 'open the scan',
+  looksRight: 'transcription is fine',
+  marked: 'marked as checked',
   writeUp: 'write your derivation · get it graded',
   derivation: 'derivation',
   collapse: 'collapse',
@@ -131,6 +142,11 @@ const ZH: typeof EN = {
   wrong: '答錯',
   revealed: '看了解答',
 
+  unchecked: '未校對',
+  checkPrompt: '這題的轉錄跟書上一致嗎？',
+  viewScan: '看原書頁',
+  looksRight: '轉錄沒問題',
+  marked: '已標記校對過',
   writeUp: '寫推導 · 讓助教批改',
   derivation: '推導',
   collapse: '收起',

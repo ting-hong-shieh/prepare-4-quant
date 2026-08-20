@@ -34,6 +34,8 @@ export default function DrillClient({
   const [verdict, setVerdict] = useState<'correct' | 'wrong' | 'revealed' | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [tutorOpen, setTutorOpen] = useState(false);
+  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [scanOpen, setScanOpen] = useState(false);
   const startedAt = useRef(Date.now());
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -113,6 +115,7 @@ export default function DrillClient({
     setPhase('answering');
     setVerdict(null);
     setTutorOpen(false);
+    setScanOpen(false);
     startedAt.current = Date.now();
     setElapsed(0);
     scrollRef.current?.scrollTo({ top: 0 });
@@ -174,6 +177,16 @@ export default function DrillClient({
       <div ref={scrollRef} style={{ position: 'relative', zIndex: 2, flex: 1, overflow: 'auto', padding: '8px 20px 16px' }}>
         <div className="mono" style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--drill-muted)', marginBottom: 14 }}>
           {problem.topic ?? '—'} · {difficultyLabel} · {s.problemOf(idx + 1, items.length)}
+          {!problem.verified && !checked.has(problem.id) && (
+            <span
+              style={{
+                marginLeft: 8, padding: '2px 7px', borderRadius: 999, textTransform: 'none',
+                letterSpacing: '.04em', border: '1px solid rgba(255,196,77,.45)', color: 'var(--timer)',
+              }}
+            >
+              {s.unchecked}
+            </span>
+          )}
         </div>
 
         <Rich
@@ -257,6 +270,59 @@ export default function DrillClient({
               </span>
               <span className="mono" style={{ fontSize: 15, color: 'var(--drill-fg-strong)' }}>{problem.answer}</span>
             </div>
+
+            {!problem.verified && !checked.has(problem.id) && problem.page && (
+              <div
+                style={{
+                  marginTop: 14, padding: '12px 14px', borderRadius: 14,
+                  border: '1px dashed rgba(255,196,77,.35)', background: 'rgba(255,196,77,.06)',
+                }}
+              >
+                <div style={{ fontSize: 13, color: 'var(--drill-hint)', marginBottom: 10 }}>{s.checkPrompt}</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => setScanOpen(v => !v)}
+                    className="mono"
+                    style={{
+                      flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 11,
+                      border: '1px solid rgba(255,255,255,.14)', color: 'var(--drill-hint)',
+                    }}
+                  >
+                    {s.viewScan}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setChecked(c => new Set(c).add(problem.id));
+                      await fetch('/api/problem', {
+                        method: 'PATCH',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ id: problem.id, verified: true }),
+                      });
+                    }}
+                    className="mono"
+                    style={{
+                      flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 11,
+                      background: 'var(--timer)', color: 'var(--drill-bg)', fontWeight: 700,
+                    }}
+                  >
+                    {s.looksRight}
+                  </button>
+                </div>
+                {scanOpen && (
+                  <img
+                    src={`/api/page/${problem.page}`}
+                    alt=""
+                    style={{ width: '100%', marginTop: 10, borderRadius: 8, background: '#fff' }}
+                  />
+                )}
+              </div>
+            )}
+
+            {checked.has(problem.id) && (
+              <div className="mono" style={{ marginTop: 14, fontSize: 11, color: 'var(--green)' }}>
+                ✓ {s.marked}
+              </div>
+            )}
 
             {text.solution && (
               <Rich
