@@ -13,6 +13,11 @@ export interface ChapterProgress extends Chapter {
   done: number;
 }
 
+export interface Figure {
+  file: string;
+  caption: string;
+}
+
 export interface Problem {
   id: number;
   chapter_id: number;
@@ -30,6 +35,8 @@ export interface Problem {
   solution_en: string | null;
   hints: string[];
   hints_en: string[];
+  /** Cropped out of the scan; a problem that needs a diagram is unusable without it. */
+  figures: Figure[];
   page: number | null;
   verified: 0 | 1;
 }

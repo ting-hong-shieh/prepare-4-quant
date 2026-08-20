@@ -10,6 +10,7 @@ function hydrate(row: any): Problem {
     ...row,
     hints: JSON.parse(row.hints || '[]'),
     hints_en: JSON.parse(row.hints_en || '[]'),
+    figures: JSON.parse(row.figures || '[]'),
   };
 }
 

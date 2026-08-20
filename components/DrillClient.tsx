@@ -178,11 +178,30 @@ export default function DrillClient({
 
         <Rich
           md={text.statement}
-          style={{
-            fontSize: 19, lineHeight: 1.62, fontWeight: 500, color: 'var(--drill-fg-strong)',
-            paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,.08)',
-          }}
+          style={{ fontSize: 19, lineHeight: 1.62, fontWeight: 500, color: 'var(--drill-fg-strong)' }}
         />
+
+        {/* The book's own artwork. Some problems cannot be read without it, and
+            it sits inside the statement block rather than below the fold. */}
+        {text.figures.map(f => (
+          <figure key={f.file} style={{ margin: '14px 0 0' }}>
+            <img
+              src={`/api/figure/${f.file}`}
+              alt={f.caption || 'figure from the book'}
+              style={{
+                width: '100%', borderRadius: 12, border: '1px solid rgba(255,255,255,.1)',
+                background: '#fff', display: 'block',
+              }}
+            />
+            {f.caption && (
+              <figcaption className="mono" style={{ marginTop: 6, fontSize: 10.5, color: 'var(--drill-muted)' }}>
+                {f.caption}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+
+        <div style={{ paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,.08)' }} />
 
         <div style={{ marginTop: 18, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 18, padding: '16px 18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>

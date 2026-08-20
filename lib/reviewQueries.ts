@@ -17,6 +17,7 @@ export function listForReview(all: boolean): ReviewRow[] {
     ...r,
     hints: JSON.parse(r.hints || '[]'),
     hints_en: JSON.parse(r.hints_en || '[]'),
+    figures: JSON.parse(r.figures || '[]'),
   }));
 }
 

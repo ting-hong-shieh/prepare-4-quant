@@ -70,6 +70,29 @@ Gemini 3.7 Flash 是 $0.75 / M input、$3.75 / M output（含 thinking token，2
 
 代價是多一趟呼叫，換到的是「解答不會被切一半」。
 
+### 圖怎麼辦
+
+有些題目沒有圖就看不懂（例如兩圓柱交集那題的 Figure 3.1）。LaTeX 帶不了圖，所以不重畫，直接把書上的圖從掃描頁裁下來掛在題目上：
+
+```bash
+ingest/crop_figure.py --page 55 --box 0.02,0.05,0.50,0.375 \
+  --caption "Figure 3.1 Interaction of two cylinders" --problem 16
+```
+
+`--box` 是 `左,上,右,下`，用頁面比例（0–1）表示，所以不用知道像素尺寸。圖存在 `data/figures/`（一樣不進版控），透過 `/api/figure/[name]` 送出，作答畫面就在題目底下顯示。
+
+書裡有圖的頁面不多 —— 用「整頁有沒有長直線」掃過 213 頁只找到 3 頁候選，線條稀疏的圖可能漏掉，實際上是靠圖說明（`Figure N.M`）判斷。
+
+### 手動轉錄
+
+不透過 API、直接看著掃描頁轉錄的題目，用同一個入口寫進題庫：
+
+```bash
+ingest/add_problem.py problems.json
+```
+
+跟 `extract.py` 一樣是 `source='ingest'`、`verified=0` —— 誰轉錄的都一樣要校對。
+
 ### 抽完一定要校對
 
 數學式辨識大約 90–95% 準，也就是每十頁就有一個下標是錯的 —— 而錯的下標會讓你把錯的東西練熟。所以抽出來的題目一律 `verified = 0`，在 `/review` 校對台一題一題過：左邊是原始掃描頁，右邊是可編輯欄位與即時渲染。

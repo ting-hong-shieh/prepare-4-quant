@@ -1,4 +1,4 @@
-import type { Problem } from './types';
+import type { Figure, Problem } from './types';
 
 export type Lang = 'en' | 'zh';
 
@@ -14,6 +14,7 @@ export interface LocalisedProblem {
   statement: string;
   solution: string | null;
   hints: string[];
+  figures: Figure[];
 }
 
 export const LANGS: Lang[] = ['en', 'zh'];
@@ -27,6 +28,7 @@ export function localise(p: Problem, lang: Lang): LocalisedProblem & { partial: 
     topic: p.topic,
     difficulty: p.difficulty,
     answer: p.answer,
+    figures: p.figures ?? [],
     title: (en ? p.title_en : p.title) || p.title || p.title_en || '',
     statement: (en ? p.statement_en : p.statement_zh) || p.statement_zh || p.statement_en || '',
     solution: (en ? p.solution_en : p.solution_md) || p.solution_md || p.solution_en || null,

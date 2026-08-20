@@ -90,6 +90,22 @@ export default function ReviewClient({
           <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 8 }}>
             {row.chapter_no != null ? `ch${row.chapter_no} · ` : ''}掃描頁 {row.page ?? '—'}
           </div>
+          {row.figures?.length > 0 && (
+            <div style={{ marginBottom: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {row.figures.map(f => (
+                <figure key={f.file} style={{ margin: 0 }}>
+                  <img
+                    src={`/api/figure/${f.file}`}
+                    alt={f.caption}
+                    style={{ width: '100%', borderRadius: 6, border: '1px solid var(--rule)', background: '#fff' }}
+                  />
+                  <figcaption className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4 }}>
+                    附圖 · {f.caption || f.file}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
           {row.page ? (
             <img
               src={`/api/page/${row.page}`}
