@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import DrillClient from '@/components/DrillClient';
-import { getSession } from '@/lib/queries';
+import { localise } from '@/lib/i18n';
+import { getLanguage, getSession } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,5 +18,13 @@ export default async function DrillPage({ params }: { params: Promise<{ sessionI
   }
   if (!session.items.length) notFound();
 
-  return <DrillClient sessionId={id} items={session.items} />;
+  const lang = getLanguage();
+  // Localise here, not in the client: only the chosen language crosses the wire.
+  const items = session.items.map(i => ({
+    attemptId: i.attemptId,
+    ordinal: i.ordinal,
+    problem: localise(i.problem, lang),
+  }));
+
+  return <DrillClient sessionId={id} items={items} lang={lang} />;
 }

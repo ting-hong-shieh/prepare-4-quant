@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
-const FIELDS = ['title', 'topic', 'difficulty', 'statement_zh', 'statement_en', 'answer', 'solution_md'] as const;
+const FIELDS = [
+  'title', 'title_en', 'topic', 'difficulty',
+  'statement_zh', 'statement_en', 'answer', 'solution_md', 'solution_en',
+] as const;
 
 export async function PATCH(req: Request) {
   try {
@@ -15,6 +18,7 @@ export async function PATCH(req: Request) {
       if (f in body) { sets.push(`${f} = ?`); args.push(body[f] ?? null); }
     }
     if ('hints' in body) { sets.push('hints = ?'); args.push(JSON.stringify(body.hints ?? [])); }
+    if ('hints_en' in body) { sets.push('hints_en = ?'); args.push(JSON.stringify(body.hints_en ?? [])); }
     if ('verified' in body) { sets.push('verified = ?'); args.push(body.verified ? 1 : 0); }
     if (!sets.length) throw new Error('沒有要更新的欄位');
 

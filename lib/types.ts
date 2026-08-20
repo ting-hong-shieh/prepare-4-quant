@@ -17,14 +17,19 @@ export interface Problem {
   id: number;
   chapter_id: number;
   ordinal: number;
+  /** Chinese title. `title_en` is the book's own heading. */
   title: string;
+  title_en: string | null;
   topic: string | null;
   difficulty: Difficulty;
   statement_zh: string;
   statement_en: string | null;
   answer: string | null;
+  /** Chinese solution. `solution_en` is the book's own, and is the source. */
   solution_md: string | null;
+  solution_en: string | null;
   hints: string[];
+  hints_en: string[];
   page: number | null;
   verified: 0 | 1;
 }

@@ -4,7 +4,10 @@ The seed bank is written from scratch rather than copied out of the book: these
 are classic problems whose mathematics is public, phrased in our own words. The
 scanned book feeds `ingest/extract.py` instead, and that output stays local.
 """
-import json, pathlib
+import json, pathlib, sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from seed_en import EN  # English source text, keyed by the Chinese title
 
 CHAPTERS = [
     (1, "腦筋急轉彎", "Brain Teasers"),
@@ -17,10 +20,14 @@ CHAPTERS = [
 ]
 
 P = []
-def add(ch, title, topic, diff, zh, en, ans, hints, sol):
+def add(ch, title, topic, diff, zh, en, ans, hints, sol,
+        title_en=None, hints_en=None, sol_en=None):
+    """The English side is the source: these are classic problems and the book
+    they mirror is in English. The Chinese side is the translation."""
     P.append(dict(chapter=ch, title=title, topic=topic, difficulty=diff,
                   statement_zh=zh, statement_en=en, answer=ans,
-                  hints=hints, solution_md=sol))
+                  hints=hints, solution_md=sol,
+                  title_en=title_en, hints_en=hints_en or [], solution_en=sol_en))
 
 add(1, "三隻螞蟻 · 三角形", "combinatorics", "easy",
     r"三隻螞蟻分別停在正三角形的三個頂點上。每隻同時開始沿著三角形的邊爬行，各自獨立、等機率地選擇左右兩個方向之一。求沒有任何兩隻螞蟻相撞的機率。",
@@ -215,7 +222,13 @@ $$x + y = \frac{n(n+1)}{2} - \sum a_i, \qquad x^2 + y^2 = \frac{n(n+1)(2n+1)}{6}
 
 **更穩健的做法**（避免溢位）：把所有元素與 $1..n$ 全部 XOR，得到 $x \oplus y$；取其最低位的 1 當分組依據，把所有數字分成兩堆各自 XOR，即可分離出 $x$ 和 $y$。""")
 
-out = pathlib.Path("data/seed-problems.json")
+missing = [p["title"] for p in P if p["title"] not in EN]
+if missing:
+    raise SystemExit(f"seed_en.py 少了這些題的英文：{missing}")
+for p in P:
+    p.update(EN[p["title"]])
+
+out = pathlib.Path(__file__).resolve().parent.parent / "data" / "seed-problems.json"
 out.write_text(json.dumps(
     {"chapters": [dict(no=n, title_zh=z, title_en=e) for n, z, e in CHAPTERS], "problems": P},
     ensure_ascii=False, indent=2), encoding="utf-8")

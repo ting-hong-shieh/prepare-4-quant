@@ -62,13 +62,33 @@ python3 -m venv .venv && .venv/bin/pip install pymupdf anthropic pydantic
 
 數學式辨識大約 90–95% 準，也就是每十頁就有一個下標是錯的 —— 而錯的下標會讓你把錯的東西練熟。所以抽出來的題目一律 `verified = 0`，在 `/review` 校對台一題一題過：左邊是原始掃描頁，右邊是可編輯欄位與即時渲染。
 
+## 語言
+
+**一個畫面只有一種語言**，預設英文。首頁右上角 `EN / 中` 切換，設定存在資料庫裡 —— 所以伺服器上的助教會用你螢幕上正在看的那個語言回你。
+
+書本身是英文的，所以**英文是來源、中文是翻譯**，不是反過來。`problems` 表兩邊都存：`statement_en` / `solution_en` / `hints_en` 是書的原文，`statement_zh` / `solution_md` / `hints` 是譯文。哪一邊缺就退回另一邊，但畫面上永遠只出現一種。
+
+語言在**伺服器端**就切好才送到瀏覽器 —— 不是送兩份讓前端挑。12 題的另一種語言（含解答）沒有理由出現在 client payload 裡。
+
+校對台是例外，那裡兩邊並排，因為那正是要比對原文與譯文的地方。
+
 ## 助教（LLM 討論）
 
-作答畫面右上角的「助教」開啟討論面板，答案欄下方的「寫推導」把完整過程交給它批改。兩個都需要 Claude API 憑證：
+作答畫面右上角的「助教」開啟討論面板，答案欄下方的「寫推導」把完整過程交給它批改。
+
+預設走 **Gemini 3.7 Flash**：
 
 ```bash
-export ANTHROPIC_API_KEY=...      # 或 .env.local
-npm run dev
+export GEMINI_API_KEY=...         # 或 .env.local
+npm run build && npm start
+```
+
+討論用 `thinking_level: low`（助教想十秒才問一句話就不是對話了），批改用 `high`（批改錯得有自信的代價最高）。
+
+換供應商只要一個環境變數 —— `lib/providers/` 底下兩個實作共用同一個介面：
+
+```bash
+LLM_PROVIDER=claude ANTHROPIC_API_KEY=... npm start
 ```
 
 沒有憑證時可以用假的助教把整條 UI 路徑跑起來（串流、渲染、儲存都是真的，只有回覆是罐頭）：

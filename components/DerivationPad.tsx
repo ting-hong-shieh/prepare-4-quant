@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import Rich from './Rich';
+import { t, type Lang } from '@/lib/i18n';
 
 export interface Grade {
   id: number;
@@ -19,12 +20,13 @@ export interface Grade {
 }
 
 const VERDICT = {
-  sound: { label: '推理成立', color: 'var(--green)' },
-  flawed: { label: '有洞', color: 'var(--timer)' },
-  wrong: { label: '方法不對', color: 'var(--orange)' },
+  sound: { en: 'sound', zh: '推理成立', color: 'var(--green)' },
+  flawed: { en: 'has a gap', zh: '有洞', color: 'var(--timer)' },
+  wrong: { en: 'wrong approach', zh: '方法不對', color: 'var(--orange)' },
 } as const;
 
-export default function DerivationPad({ attemptId }: { attemptId: number }) {
+export default function DerivationPad({ attemptId, lang }: { attemptId: number; lang: Lang }) {
+  const s = t(lang);
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState('');
   const [grade, setGrade] = useState<Grade | null>(null);
@@ -50,7 +52,7 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
         body: JSON.stringify({ attemptId, derivation: body }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? '批改失敗');
+      if (!res.ok) throw new Error(data.error ?? 'grading failed');
       setGrade(data);
     } catch (e) {
       setError((e as Error).message);
@@ -80,7 +82,7 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
           textTransform: 'uppercase', color: 'var(--drill-muted)',
         }}
       >
-        寫推導 · 讓助教批改
+        {s.writeUp}
       </button>
     );
   }
@@ -88,9 +90,9 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
   return (
     <div style={{ marginTop: 12, border: '1px solid rgba(255,255,255,.1)', borderRadius: 18, padding: '14px 16px', background: 'rgba(255,255,255,.03)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 10 }}>
-        <span className="mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--drill-muted)' }}>推導</span>
+        <span className="mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--drill-muted)' }}>{s.derivation}</span>
         <span style={{ flex: 1 }} />
-        <button onClick={() => setOpen(false)} style={{ fontSize: 13, color: 'var(--drill-muted)' }}>收起</button>
+        <button onClick={() => setOpen(false)} style={{ fontSize: 13, color: 'var(--drill-muted)' }}>{s.collapse}</button>
       </div>
 
       <textarea
@@ -98,7 +100,7 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
         onChange={e => setBody(e.target.value)}
         onKeyDown={e => e.stopPropagation()}
         rows={7}
-        placeholder={'把完整過程寫下來，數學用 LaTeX：\n\n設 $x, y \\sim U(0,1)$ 獨立…'}
+        placeholder={s.derivationPlaceholder}
         style={{
           width: '100%', resize: 'vertical', background: 'rgba(0,0,0,.28)',
           border: '1px solid rgba(255,255,255,.1)', borderRadius: 12, padding: '11px 12px',
@@ -108,7 +110,7 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
 
       {body.trim() && (
         <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 12, border: '1px dashed rgba(255,255,255,.1)' }}>
-          <div className="mono" style={{ fontSize: 9.5, letterSpacing: '.14em', color: 'var(--drill-muted)', marginBottom: 6 }}>預覽</div>
+          <div className="mono" style={{ fontSize: 9.5, letterSpacing: '.14em', color: 'var(--drill-muted)', marginBottom: 6 }}>{s.preview}</div>
           <Rich md={preview} style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--drill-hint)' }} />
         </div>
       )}
@@ -122,7 +124,7 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
           opacity: busy || !body.trim() ? 0.4 : 1,
         }}
       >
-        {busy ? '批改中…' : '送出批改'}
+        {busy ? s.grading : s.gradeIt}
       </button>
 
       {error && (
@@ -133,16 +135,16 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
         <div style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,.08)', paddingTop: 14 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
             <span className="mono" style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: VERDICT[grade.verdict].color }}>
-              {VERDICT[grade.verdict].label}
+              {VERDICT[grade.verdict][lang]}
             </span>
             <span className="display" style={{ fontSize: 30, color: 'var(--drill-fg-strong)', lineHeight: 1 }}>{grade.score}</span>
             <span className="mono" style={{ fontSize: 11, color: 'var(--drill-muted)' }}>/100</span>
           </div>
 
-          <Section label="做對的地方" body={grade.praise} color="var(--green)" />
-          {grade.first_error && <Section label="第一個出錯的步驟" body={grade.first_error} color="var(--orange)" />}
-          {grade.why && <Section label="為什麼錯" body={grade.why} />}
-          {grade.concept && <Section label="要補的觀念" body={grade.concept} color="var(--accent)" />}
+          <Section label={s.didRight} body={grade.praise} color="var(--green)" />
+          {grade.first_error && <Section label={s.firstError} body={grade.first_error} color="var(--orange)" />}
+          {grade.why && <Section label={s.whyWrong} body={grade.why} />}
+          {grade.concept && <Section label={s.toRevisit} body={grade.concept} color="var(--accent)" />}
 
           <button
             onClick={dispute}
@@ -154,7 +156,7 @@ export default function DerivationPad({ attemptId }: { attemptId: number }) {
               color: disputed ? 'var(--green)' : 'var(--drill-muted)',
             }}
           >
-            {disputed ? '已標記 —— 之後再回來看這題' : '我覺得我對'}
+            {disputed ? s.flagged : s.disagree}
           </button>
         </div>
       )}

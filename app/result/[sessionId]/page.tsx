@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import ResultClient from '@/components/ResultClient';
-import { getOverview, getSessionResult } from '@/lib/queries';
+import { getLanguage, getOverview, getSessionResult } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +24,7 @@ export default async function ResultPage({ params }: { params: Promise<{ session
       percentBefore={Math.max(0, before)}
       percentAfter={overview.percent}
       streakDays={overview.streakDays}
+      lang={getLanguage()}
     />
   );
 }

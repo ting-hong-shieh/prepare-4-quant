@@ -7,20 +7,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Rich from './Rich';
+import { t, type Lang } from '@/lib/i18n';
 
 const LATEX_KEYS = ['\\frac{}{}', '\\int', '\\sum', '^{}', '_{}', '\\sqrt{}', '\\infty', '$$'];
 
 export interface ChatTurn { role: 'user' | 'assistant'; content: string }
 
 export default function TutorSheet({
-  attemptId, phase, open, onClose, initial,
+  attemptId, phase, open, onClose, initial, lang,
 }: {
   attemptId: number;
   phase: 'thinking' | 'reviewing';
   open: boolean;
   onClose: () => void;
   initial?: ChatTurn[];
+  lang: Lang;
 }) {
+  const s = t(lang);
   const [turns, setTurns] = useState<ChatTurn[]>(initial ?? []);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -53,7 +56,7 @@ export default function TutorSheet({
 
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `助教沒有回應（${res.status}）`);
+        throw new Error(body.error ?? `tutor did not respond (${res.status})`);
       }
 
       const reader = res.body.getReader();
@@ -77,9 +80,7 @@ export default function TutorSheet({
     }
   }
 
-  const suggestions = phase === 'thinking'
-    ? ['我卡住了，給我一個方向', '我想用這個設法，對嗎？', '這題在考什麼觀念？']
-    : ['我當初錯在哪一步？', '有沒有更快的做法？', '下次遇到什麼特徵要想到這招？'];
+  const suggestions = phase === 'thinking' ? s.suggestThinking : s.suggestReviewing;
 
   return (
     <div
@@ -109,7 +110,7 @@ export default function TutorSheet({
       >
         <div style={{ flex: 'none', padding: '12px 18px 10px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid rgba(255,255,255,.07)' }}>
           <span className="mono" style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--drill-muted)' }}>
-            助教
+            {s.tutor}
           </span>
           <span
             className="mono"
@@ -120,18 +121,16 @@ export default function TutorSheet({
               color: phase === 'thinking' ? 'var(--accent)' : 'var(--green)',
             }}
           >
-            {phase === 'thinking' ? '不給答案' : '完整討論'}
+            {phase === 'thinking' ? s.noAnswers : s.fullDiscussion}
           </span>
           <span style={{ flex: 1 }} />
-          <button onClick={onClose} aria-label="收起助教" style={{ fontSize: 15, color: '#9A93B0', padding: 4 }}>✕</button>
+          <button onClick={onClose} aria-label="close" style={{ fontSize: 15, color: '#9A93B0', padding: 4 }}>✕</button>
         </div>
 
         <div ref={listRef} style={{ flex: 1, overflow: 'auto', padding: '16px 18px' }}>
           {turns.length === 0 && (
             <div style={{ color: 'var(--drill-muted)', fontSize: 13.5, lineHeight: 1.7 }}>
-              {phase === 'thinking'
-                ? '卡住的時候問這裡。這個階段助教不會直接給答案，只會問你問題把你推下一步。'
-                : '答案已經揭曉了，這裡可以完整討論 —— 問你錯在哪、問有沒有更快的做法。'}
+              {phase === 'thinking' ? s.tutorIdleThinking : s.tutorIdleReviewing}
             </div>
           )}
 
@@ -156,7 +155,7 @@ export default function TutorSheet({
               >
                 {t.content
                   ? <Rich md={t.content} />
-                  : <span className="mono" style={{ color: 'var(--drill-muted)', fontSize: 12 }}>思考中…</span>}
+                  : <span className="mono" style={{ color: 'var(--drill-muted)', fontSize: 12 }}>{s.thinking}</span>}
               </div>
             </div>
           ))}
@@ -215,7 +214,7 @@ export default function TutorSheet({
                 e.stopPropagation(); // the drill screen's own key handler must not eat this
               }}
               rows={1}
-              placeholder="可以直接寫 LaTeX，例如 $P(A\mid B)$"
+              placeholder={s.tutorPlaceholder}
               style={{
                 flex: 1, minHeight: 44, maxHeight: 140, resize: 'none',
                 background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.12)',

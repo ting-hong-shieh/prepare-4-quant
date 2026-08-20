@@ -1,25 +1,33 @@
 import HomeScene from '@/components/HomeScene';
+import LangToggle from '@/components/LangToggle';
 import StartDrill from '@/components/StartDrill';
-import { getOverview } from '@/lib/queries';
+import { t } from '@/lib/i18n';
+import { getLanguage, getOverview } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-function formatDate(iso: string) {
+function formatDate(iso: string, lang: 'en' | 'zh') {
   const d = new Date(iso);
-  return `${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+  return lang === 'zh'
+    ? `${d.getMonth() + 1} 月 ${d.getDate()} 日`
+    : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
 }
 
 export default function Home() {
+  const lang = getLanguage();
+  const s = t(lang);
   const o = getOverview();
   const chaptersDone = o.chapters.filter(c => c.total > 0 && c.done >= c.total).length;
 
+  const slack =
+    o.projectedFinish && o.daysToInterview !== null
+      ? Math.max(0, o.daysToInterview - Math.round((new Date(o.projectedFinish).getTime() - Date.now()) / 86400000))
+      : null;
   const pace = o.projectedFinish
-    ? `${o.doneProblems.toLocaleString()} / ${o.totalProblems.toLocaleString()} 題。照目前速度，${formatDate(o.projectedFinish)}刷完${
-        o.daysToInterview !== null ? ` —— 面試前 ${Math.max(0, o.daysToInterview - Math.round((new Date(o.projectedFinish).getTime() - Date.now()) / 86400000))} 天。` : '。'
-      }`
-    : `${o.doneProblems.toLocaleString()} / ${o.totalProblems.toLocaleString()} 題。還沒有足夠的紀錄可以估完成日 —— 先刷幾天。`;
+    ? s.pace(o.doneProblems, o.totalProblems, formatDate(o.projectedFinish, lang), slack)
+    : s.noPace(o.doneProblems, o.totalProblems);
 
   const chips = [
     `streak ${o.streakDays}d`,
@@ -44,8 +52,9 @@ export default function Home() {
 
       <div style={{ position: 'relative', zIndex: 2, marginTop: -58, padding: '0 22px 34px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
-          <span className="eyebrow">progress / {pad2(o.chapters.length)} chapters</span>
+          <span className="eyebrow">{s.progress} / {pad2(o.chapters.length)} {s.chaptersLabel}</span>
           <div style={{ flex: 1, height: 1, background: 'var(--rule-strong)' }} />
+          <LangToggle lang={lang} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginBottom: 4 }}>
@@ -75,10 +84,10 @@ export default function Home() {
           ))}
         </div>
 
-        <StartDrill label={`今天的 ${o.todayPlan.total} 題`} />
+        <StartDrill label={s.todaySet(o.todayPlan.total)} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 2 }}>
-          <span className="eyebrow">chapters</span>
+          <span className="eyebrow">{s.chapters}</span>
           <div style={{ flex: 1, height: 1, background: 'var(--rule)' }} />
         </div>
 
@@ -101,7 +110,7 @@ export default function Home() {
                 {pad2(c.no)}
               </span>
               <span style={{ flex: 1, fontSize: 14 }}>
-                {c.title_zh}
+                {lang === 'zh' ? c.title_zh : c.title_en}
                 {inProgress && (
                   <div style={{ height: 1, background: 'var(--rule)', marginTop: 9, position: 'relative' }}>
                     <div
@@ -123,7 +132,7 @@ export default function Home() {
 
       <div style={{ padding: '0 22px 40px', display: 'flex', gap: 16 }}>
         <a className="mono" href="/review" style={{ fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--dim)' }}>
-          校對台 →
+          {s.reviewDesk} →
         </a>
       </div>
 

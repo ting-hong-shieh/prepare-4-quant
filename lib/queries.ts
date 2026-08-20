@@ -1,11 +1,16 @@
 import { getDb } from './db';
 import { schedule, gradeFromOutcome, type ReviewState } from './review';
+import type { Lang } from './i18n';
 import type { Chapter, ChapterProgress, Overview, Problem, SessionItem } from './types';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 function hydrate(row: any): Problem {
-  return { ...row, hints: JSON.parse(row.hints || '[]') };
+  return {
+    ...row,
+    hints: JSON.parse(row.hints || '[]'),
+    hints_en: JSON.parse(row.hints_en || '[]'),
+  };
 }
 
 export function getOverview(): Overview {
@@ -201,12 +206,13 @@ export function endSession(sessionId: number) {
 export function getSessionResult(sessionId: number) {
   const db = getDb();
   const rows = db.prepare(`
-    SELECT a.ordinal, a.seconds, a.outcome, a.grade, p.title, p.topic
+    SELECT a.ordinal, a.seconds, a.outcome, a.grade, p.title, p.title_en, p.topic
       FROM attempts a JOIN problems p ON p.id = a.problem_id
      WHERE a.session_id = ? AND a.ended_at IS NOT NULL
      ORDER BY a.ordinal
   `).all(sessionId) as {
-    ordinal: number; seconds: number; outcome: string; grade: number; title: string; topic: string | null;
+    ordinal: number; seconds: number; outcome: string; grade: number;
+    title: string; title_en: string | null; topic: string | null;
   }[];
 
   const answered = rows.length;
@@ -302,4 +308,18 @@ export function getDerivation(attemptId: number): Derivation | null {
 /** 「我覺得我對」 — flag a grade I disagree with, so it can be looked at again. */
 export function disputeDerivation(id: number) {
   getDb().prepare('UPDATE derivations SET disputed = 1 WHERE id = ?').run(id);
+}
+
+// ── 語言 ───────────────────────────────────────────────────────────────────
+
+export function getLanguage(): Lang {
+  const row = getDb().prepare('SELECT language FROM settings WHERE id = 1').get() as
+    { language: string } | undefined;
+  return row?.language === 'zh' ? 'zh' : 'en';
+}
+
+export function setLanguage(lang: Lang) {
+  getDb()
+    .prepare('INSERT INTO settings (id, language) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET language = excluded.language')
+    .run(lang);
 }

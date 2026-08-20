@@ -7,27 +7,26 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import QuantBuddy, { type Mood } from './QuantBuddy';
+import { t, type Lang } from '@/lib/i18n';
 
-interface Row { ordinal: number; seconds: number; outcome: string; title: string; topic: string | null }
-
-const COPY: Record<Mood, { title: string; sub: string }> = {
-  proud: { title: '全對。', sub: '這一組沒有一題卡住 —— 把難度往上調一階試試。' },
-  rest:  { title: '收工。', sub: '穩定推進比一次衝很多重要，明天同一個時間再來。' },
-  sorry: { title: '差一點。', sub: '錯的那幾題已經排進複習了，最快明天會再遇到。' },
-  focus: { title: '還在想。', sub: '花時間不是壞事 —— 記下卡住的那一步，比記下答案有用。' },
-};
+interface Row { ordinal: number; seconds: number; outcome: string; title: string; title_en: string | null; topic: string | null }
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 export default function ResultClient({
-  result, percentBefore, percentAfter, streakDays,
+  result, percentBefore, percentAfter, streakDays, lang,
 }: {
   result: { rows: Row[]; answered: number; correct: number; avgSeconds: number };
   percentBefore: number;
   percentAfter: number;
   streakDays: number;
+  lang: Lang;
 }) {
   const router = useRouter();
+  const s = t(lang);
+  const COPY: Record<Mood, { title: string; sub: string }> = {
+    proud: s.moodProud, rest: s.moodRest, sorry: s.moodSorry, focus: s.moodFocus,
+  };
   const allCorrect = result.correct === result.answered;
   const mostlyWrong = result.correct < result.answered / 2;
   const initial: Mood = allCorrect ? 'proud' : mostlyWrong ? 'sorry' : 'rest';
@@ -64,14 +63,14 @@ export default function ResultClient({
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 22 }}>
-        {chip('全對', 'proud')}
-        {chip('差一點', 'sorry')}
-        {chip('思考中', 'focus')}
+        {chip(s.moodAll, 'proud')}
+        {chip(s.moodClose, 'sorry')}
+        {chip(s.moodThinking, 'focus')}
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, background: '#fff', border: '2px solid var(--cream-ink)', borderRadius: 22, boxShadow: '0 5px 0 var(--cream-ink)', padding: 18, marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 13, color: 'var(--cream-muted)' }}>完成度</span>
+          <span style={{ fontSize: 13, color: 'var(--cream-muted)' }}>{s.completion}</span>
           <span className="mono" style={{ fontWeight: 700, fontSize: 13, color: 'var(--violet)' }}>
             {percentBefore}% → {percentAfter}%
           </span>
@@ -80,9 +79,9 @@ export default function ResultClient({
           <div style={{ width: `${percentAfter}%`, height: '100%', background: 'var(--violet)' }} />
         </div>
         <div style={{ display: 'flex', gap: 18 }}>
-          <Stat value={`+${result.correct}`} label="題答對" />
-          <Stat value={String(streakDays)} label="天連續" />
-          <Stat value={clock(result.avgSeconds)} label="平均／題" color="var(--green)" />
+          <Stat value={`+${result.correct}`} label={s.gotRight} />
+          <Stat value={String(streakDays)} label={s.dayStreak} />
+          <Stat value={clock(result.avgSeconds)} label={s.perProblem} color="var(--green)" />
         </div>
       </div>
 
@@ -101,7 +100,7 @@ export default function ResultClient({
                 background: r.outcome === 'correct' ? 'var(--green)' : 'var(--orange)',
               }}
             />
-            <span style={{ flex: 1, fontSize: 13.5 }}>{r.title}</span>
+            <span style={{ flex: 1, fontSize: 13.5 }}>{(lang === 'en' ? r.title_en : r.title) || r.title}</span>
             <span className="mono" style={{ fontWeight: 500, fontSize: 11, color: 'var(--cream-muted)' }}>{clock(r.seconds ?? 0)}</span>
           </div>
         ))}
@@ -120,7 +119,7 @@ export default function ResultClient({
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600,
           }}
         >
-          再一組
+          {s.again}
         </button>
         <button
           onClick={() => router.push('/')}
@@ -130,7 +129,7 @@ export default function ResultClient({
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600,
           }}
         >
-          回首頁
+          {s.home}
         </button>
       </div>
     </div>

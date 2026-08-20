@@ -49,7 +49,13 @@
         "先數總共有幾種走法。",
         "什麼情況下三隻完全不會碰到彼此？"
       ],
-      "solution_md": "每隻螞蟻有 2 種選擇，總共 $2^3 = 8$ 種走法。\n\n只有在三隻**同時順時針**或**同時逆時針**時才不會相撞 —— 只要有一隻走反了，牠一定會在某條邊上迎面撞到別人。\n\n$$P = \\frac{2}{8} = \\frac{1}{4}$$"
+      "solution_md": "每隻螞蟻有 2 種選擇，總共 $2^3 = 8$ 種走法。\n\n只有在三隻**同時順時針**或**同時逆時針**時才不會相撞 —— 只要有一隻走反了，牠一定會在某條邊上迎面撞到別人。\n\n$$P = \\frac{2}{8} = \\frac{1}{4}$$",
+      "title_en": "Three ants on a triangle",
+      "hints_en": [
+        "Count the total number of ways they can move.",
+        "What has to be true for no two of them to meet?"
+      ],
+      "solution_en": "Each ant picks one of 2 directions, so there are $2^3 = 8$ equally likely outcomes.\n\nNo collision happens only when all three go **clockwise** or all three go **counter-clockwise** — if even one ant turns the other way, it meets someone head-on along an edge.\n\n$$P = \\frac{2}{8} = \\frac{1}{4}$$"
     },
     {
       "chapter": 1,
@@ -63,7 +69,13 @@
         "第一顆蛋用來粗掃，第二顆只能一層一層往上試。",
         "讓每一次粗掃之後，剩下要線性搜尋的範圍縮小 1 層。"
       ],
-      "solution_md": "設第一顆蛋第一次從 $n$ 樓丟。若破了，第二顆必須從 1 樓試到 $n-1$ 樓，總共最多 $n$ 次。\n\n若沒破，下一次往上跳 $n-1$ 層 —— 因為已經用掉一次，剩下的預算少了 1。依此類推，可覆蓋的樓層數是\n\n$$n + (n-1) + \\cdots + 1 = \\frac{n(n+1)}{2} \\ge 100$$\n\n$n = 13$ 得 91，不夠；$n = 14$ 得 105，足夠。所以**最壞情況 14 次**，第一次從 14 樓開始丟。"
+      "solution_md": "設第一顆蛋第一次從 $n$ 樓丟。若破了，第二顆必須從 1 樓試到 $n-1$ 樓，總共最多 $n$ 次。\n\n若沒破，下一次往上跳 $n-1$ 層 —— 因為已經用掉一次，剩下的預算少了 1。依此類推，可覆蓋的樓層數是\n\n$$n + (n-1) + \\cdots + 1 = \\frac{n(n+1)}{2} \\ge 100$$\n\n$n = 13$ 得 91，不夠；$n = 14$ 得 105，足夠。所以**最壞情況 14 次**，第一次從 14 樓開始丟。",
+      "title_en": "Two eggs, 100 floors",
+      "hints_en": [
+        "The first egg does the coarse search; the second can only go up one floor at a time.",
+        "Make each coarse jump leave one fewer floor to search linearly."
+      ],
+      "solution_en": "Say the first egg is dropped from floor $n$. If it breaks, the second egg has to try floors $1$ through $n-1$ one at a time — $n$ drops in total.\n\nIf it survives, the next jump is $n-1$ floors, since one drop of the budget is already spent. Continuing this way, the floors covered are\n\n$$n + (n-1) + \\cdots + 1 = \\frac{n(n+1)}{2} \\ge 100$$\n\n$n = 13$ gives 91, not enough; $n = 14$ gives 105. So **14 drops worst case**, starting from floor 14."
     },
     {
       "chapter": 1,
@@ -76,7 +88,12 @@
       "hints": [
         "兩端同時點燃會發生什麼事？"
       ],
-      "solution_md": "**兩端同時點燃**一條繩子，不論燃速多不均勻，一定在 30 分鐘後燒完（兩個火頭走完的總長度等於全長）。\n\n1. $t=0$：繩 A 兩端都點燃，繩 B 只點一端。\n2. $t=30$：繩 A 燒完。此時繩 B 還剩下「單端再燒 30 分鐘」的量。\n3. 立刻點燃繩 B 的另一端 → 剩下的量在 15 分鐘內燒完。\n\n$30 + 15 = 45$ 分鐘。"
+      "solution_md": "**兩端同時點燃**一條繩子，不論燃速多不均勻，一定在 30 分鐘後燒完（兩個火頭走完的總長度等於全長）。\n\n1. $t=0$：繩 A 兩端都點燃，繩 B 只點一端。\n2. $t=30$：繩 A 燒完。此時繩 B 還剩下「單端再燒 30 分鐘」的量。\n3. 立刻點燃繩 B 的另一端 → 剩下的量在 15 分鐘內燒完。\n\n$30 + 15 = 45$ 分鐘。",
+      "title_en": "Two ropes, 45 minutes",
+      "hints_en": [
+        "What happens if you light a rope from both ends at once?"
+      ],
+      "solution_en": "Lighting a rope at **both ends** burns it in 30 minutes no matter how uneven the rate is — the two flame fronts together cover the whole length.\n\n1. $t=0$: light rope A at both ends, rope B at one end.\n2. $t=30$: rope A is gone. Rope B has 30 minutes of one-ended burning left in it.\n3. Light rope B's other end immediately → what remains burns in 15 minutes.\n\n$30 + 15 = 45$ minutes."
     },
     {
       "chapter": 2,
@@ -90,7 +107,13 @@
         "這個積分沒有初等原函數，別想直接積。",
         "考慮 $I^2$，把它寫成二重積分。"
       ],
-      "solution_md": "令 $I = \\int_{-\\infty}^{\\infty} e^{-x^2}dx$。則\n\n$$I^2 = \\int_{-\\infty}^{\\infty}\\!\\!\\int_{-\\infty}^{\\infty} e^{-(x^2+y^2)}\\,dx\\,dy$$\n\n換成極座標，$x^2+y^2 = r^2$、$dx\\,dy = r\\,dr\\,d\\theta$：\n\n$$I^2 = \\int_0^{2\\pi}\\!\\!\\int_0^{\\infty} e^{-r^2} r\\,dr\\,d\\theta = 2\\pi \\cdot \\frac{1}{2} = \\pi$$\n\n所以 $I = \\sqrt{\\pi}$。\n\n**面試重點**：關鍵不是計算，是「單變數不行就升到二維」這個念頭。"
+      "solution_md": "令 $I = \\int_{-\\infty}^{\\infty} e^{-x^2}dx$。則\n\n$$I^2 = \\int_{-\\infty}^{\\infty}\\!\\!\\int_{-\\infty}^{\\infty} e^{-(x^2+y^2)}\\,dx\\,dy$$\n\n換成極座標，$x^2+y^2 = r^2$、$dx\\,dy = r\\,dr\\,d\\theta$：\n\n$$I^2 = \\int_0^{2\\pi}\\!\\!\\int_0^{\\infty} e^{-r^2} r\\,dr\\,d\\theta = 2\\pi \\cdot \\frac{1}{2} = \\pi$$\n\n所以 $I = \\sqrt{\\pi}$。\n\n**面試重點**：關鍵不是計算，是「單變數不行就升到二維」這個念頭。",
+      "title_en": "The Gaussian integral",
+      "hints_en": [
+        "There is no elementary antiderivative — don't try to integrate directly.",
+        "Consider $I^2$ and write it as a double integral."
+      ],
+      "solution_en": "Let $I = \\int_{-\\infty}^{\\infty} e^{-x^2}dx$. Then\n\n$$I^2 = \\int_{-\\infty}^{\\infty}\\!\\!\\int_{-\\infty}^{\\infty} e^{-(x^2+y^2)}\\,dx\\,dy$$\n\nIn polar coordinates, $x^2+y^2 = r^2$ and $dx\\,dy = r\\,dr\\,d\\theta$:\n\n$$I^2 = \\int_0^{2\\pi}\\!\\!\\int_0^{\\infty} e^{-r^2} r\\,dr\\,d\\theta = 2\\pi \\cdot \\frac{1}{2} = \\pi$$\n\nSo $I = \\sqrt{\\pi}$.\n\n**What the interviewer is after**: not the computation, but the move — when one variable won't work, go up a dimension."
     },
     {
       "chapter": 2,
@@ -103,7 +126,12 @@
       "hints": [
         "整個塔等於 2，那指數上的塔等於多少？"
       ],
-      "solution_md": "指數位置上的次方塔和整體是同一個式子，所以\n\n$$x^{\\left(x^{x^{\\cdots}}\\right)} = x^2 = 2 \\implies x = \\sqrt{2}$$\n\n**陷阱**：同樣做法對 $=4$ 也會給出 $x = \\sqrt{2}$，但次方塔在 $x = \\sqrt{2}$ 實際收斂到 2 而不是 4 —— 次方塔只在 $x \\le e^{1/e}$ 時收斂。面試官問這題常常是在等你講出收斂條件。"
+      "solution_md": "指數位置上的次方塔和整體是同一個式子，所以\n\n$$x^{\\left(x^{x^{\\cdots}}\\right)} = x^2 = 2 \\implies x = \\sqrt{2}$$\n\n**陷阱**：同樣做法對 $=4$ 也會給出 $x = \\sqrt{2}$，但次方塔在 $x = \\sqrt{2}$ 實際收斂到 2 而不是 4 —— 次方塔只在 $x \\le e^{1/e}$ 時收斂。面試官問這題常常是在等你講出收斂條件。",
+      "title_en": "Infinite power tower",
+      "hints_en": [
+        "The whole tower equals 2. What does the tower sitting in the exponent equal?"
+      ],
+      "solution_en": "The tower in the exponent is the same expression as the whole, so\n\n$$x^{\\left(x^{x^{\\cdots}}\\right)} = x^2 = 2 \\implies x = \\sqrt{2}$$\n\n**The trap**: the same move applied to $= 4$ also gives $x = \\sqrt{2}$, but at $x = \\sqrt{2}$ the tower actually converges to 2, not 4 — it only converges for $x \\le e^{1/e}$. Interviewers ask this waiting for you to raise convergence."
     },
     {
       "chapter": 3,
@@ -117,7 +145,13 @@
         "先把 8 種結果列出來，別急著用直覺。",
         "條件機率的分母是「至少一正」的那些結果。"
       ],
-      "solution_md": "樣本空間有 8 種等機率結果。「至少一次正面」排除了 TTT，剩 7 種。其中三次全正只有 HHH 一種。\n\n$$P(\\text{HHH} \\mid \\text{至少一正}) = \\frac{1/8}{7/8} = \\frac{1}{7}$$\n\n**常見錯誤**：答 $1/8$（忘了條件），或答 $1/4$（誤把題目讀成「指定某一次是正面」，那是另一題）。這兩題的差別要講得出來。"
+      "solution_md": "樣本空間有 8 種等機率結果。「至少一次正面」排除了 TTT，剩 7 種。其中三次全正只有 HHH 一種。\n\n$$P(\\text{HHH} \\mid \\text{至少一正}) = \\frac{1/8}{7/8} = \\frac{1}{7}$$\n\n**常見錯誤**：答 $1/8$（忘了條件），或答 $1/4$（誤把題目讀成「指定某一次是正面」，那是另一題）。這兩題的差別要講得出來。",
+      "title_en": "Three coin tosses, given at least one head",
+      "hints_en": [
+        "Write out the 8 outcomes before trusting your intuition.",
+        "The denominator is the outcomes with at least one head, not all of them."
+      ],
+      "solution_en": "There are 8 equally likely outcomes. \"At least one head\" rules out TTT, leaving 7. Exactly one of those is HHH.\n\n$$P(\\text{HHH} \\mid \\text{at least one H}) = \\frac{1/8}{7/8} = \\frac{1}{7}$$\n\n**Common mistakes**: answering $1/8$ (forgetting the condition), or $1/4$ (reading it as \"a specific toss is a head\", which is a different problem). Be ready to explain the difference."
     },
     {
       "chapter": 3,
@@ -131,7 +165,13 @@
         "三角形不等式在這裡等價於：每一段都必須小於 1/2。",
         "把兩個切點 $(x,y)$ 畫在單位正方形上。"
       ],
-      "solution_md": "設兩個切點為 $x, y \\sim U(0,1)$ 且獨立。三段能構成三角形 $\\iff$ 每段都 $< 1/2$。\n\n在單位正方形上，先看 $x < y$ 的那一半。三段長為 $x,\\; y-x,\\; 1-y$，條件為\n\n$$x < \\tfrac12,\\quad y - x < \\tfrac12,\\quad y > \\tfrac12$$\n\n這在 $x<y$ 的三角形（面積 $1/2$）中切出一個面積 $1/8$ 的小三角形。由對稱性，$x>y$ 的那半也是 $1/8$。\n\n$$P = \\tfrac18 + \\tfrac18 = \\tfrac14$$"
+      "solution_md": "設兩個切點為 $x, y \\sim U(0,1)$ 且獨立。三段能構成三角形 $\\iff$ 每段都 $< 1/2$。\n\n在單位正方形上，先看 $x < y$ 的那一半。三段長為 $x,\\; y-x,\\; 1-y$，條件為\n\n$$x < \\tfrac12,\\quad y - x < \\tfrac12,\\quad y > \\tfrac12$$\n\n這在 $x<y$ 的三角形（面積 $1/2$）中切出一個面積 $1/8$ 的小三角形。由對稱性，$x>y$ 的那半也是 $1/8$。\n\n$$P = \\tfrac18 + \\tfrac18 = \\tfrac14$$",
+      "title_en": "Breaking a stick into a triangle",
+      "hints_en": [
+        "The triangle inequality here is just: every piece must be shorter than 1/2.",
+        "Plot the two break points $(x,y)$ on the unit square."
+      ],
+      "solution_en": "Let the break points be $x, y \\sim U(0,1)$, independent. The pieces form a triangle $\\iff$ every piece is $< 1/2$.\n\nTake the half of the unit square where $x < y$. The pieces are $x,\\; y-x,\\; 1-y$, so the condition is\n\n$$x < \\tfrac12,\\quad y - x < \\tfrac12,\\quad y > \\tfrac12$$\n\nThat carves a triangle of area $1/8$ out of the $x<y$ region (area $1/2$). By symmetry the $x>y$ half contributes another $1/8$.\n\n$$P = \\tfrac18 + \\tfrac18 = \\tfrac14$$"
     },
     {
       "chapter": 3,
@@ -145,7 +185,13 @@
         "設狀態：目前結尾是什麼，列一階遞迴。",
         "HH 會「自我重疊」，HT 不會 —— 這就是差別的來源。"
       ],
-      "solution_md": "**HT**：先等到第一個 H（期望 2 次），之後每次丟出 T 就結束，期望再 2 次。$E[HT] = 2 + 2 = 4$。\n\n**HH**：令 $E_0$ 為從零開始的期望、$E_1$ 為已有一個 H 的期望。\n\n$$E_0 = 1 + \\tfrac12 E_1 + \\tfrac12 E_0,\\qquad E_1 = 1 + \\tfrac12 \\cdot 0 + \\tfrac12 E_0$$\n\n解得 $E_0 = 6$。\n\n**為什麼不同**：HH 失敗時（丟出 T）會退回原點，浪費掉已累積的進度；HT 失敗時（丟出 H）仍停在「已有 H」的狀態，沒有損失。這個「自我重疊」的差別就是 Conway leading numbers 在講的事。"
+      "solution_md": "**HT**：先等到第一個 H（期望 2 次），之後每次丟出 T 就結束，期望再 2 次。$E[HT] = 2 + 2 = 4$。\n\n**HH**：令 $E_0$ 為從零開始的期望、$E_1$ 為已有一個 H 的期望。\n\n$$E_0 = 1 + \\tfrac12 E_1 + \\tfrac12 E_0,\\qquad E_1 = 1 + \\tfrac12 \\cdot 0 + \\tfrac12 E_0$$\n\n解得 $E_0 = 6$。\n\n**為什麼不同**：HH 失敗時（丟出 T）會退回原點，浪費掉已累積的進度；HT 失敗時（丟出 H）仍停在「已有 H」的狀態，沒有損失。這個「自我重疊」的差別就是 Conway leading numbers 在講的事。",
+      "title_en": "Waiting for HH versus HT",
+      "hints_en": [
+        "Set up states on what the sequence currently ends with, then write a one-step recursion.",
+        "HH can overlap itself, HT cannot — that is where the difference comes from."
+      ],
+      "solution_en": "**HT**: wait for the first H (expected 2 tosses), then every toss ends it with probability $1/2$, another expected 2. $E[HT] = 2 + 2 = 4$.\n\n**HH**: let $E_0$ be the expectation from scratch and $E_1$ the expectation with one H banked.\n\n$$E_0 = 1 + \\tfrac12 E_1 + \\tfrac12 E_0,\\qquad E_1 = 1 + \\tfrac12 \\cdot 0 + \\tfrac12 E_0$$\n\nwhich gives $E_0 = 6$.\n\n**Why they differ**: failing at HH (tossing T) throws away the progress you had; failing at HT (tossing H) leaves you exactly where you were, with an H banked. That self-overlap is what Conway's leading numbers measure."
     },
     {
       "chapter": 3,
@@ -159,7 +205,13 @@
         "只有兩個座位真正重要：第 1 位的和第 100 位的。",
         "想想這場遊戲是怎麼結束的。"
       ],
-      "solution_md": "整個過程只會以兩種方式結束：某個人坐到了**第 1 位乘客的位子**（之後所有人都對號入座，第 100 位拿到自己的），或某個人坐到了**第 100 位的位子**（第 100 位拿不到）。\n\n每當有人被迫隨機選位時，這兩個特定座位在他眼中是對稱的、被選中的機率相同。因此先被佔掉的是哪一個，機率各半。\n\n$$P = \\frac{1}{2}$$\n\n這個答案與乘客總數無關。"
+      "solution_md": "整個過程只會以兩種方式結束：某個人坐到了**第 1 位乘客的位子**（之後所有人都對號入座，第 100 位拿到自己的），或某個人坐到了**第 100 位的位子**（第 100 位拿不到）。\n\n每當有人被迫隨機選位時，這兩個特定座位在他眼中是對稱的、被選中的機率相同。因此先被佔掉的是哪一個，機率各半。\n\n$$P = \\frac{1}{2}$$\n\n這個答案與乘客總數無關。",
+      "title_en": "The 100 seats problem",
+      "hints_en": [
+        "Only two seats matter: passenger 1's and passenger 100's.",
+        "Think about how the game ends."
+      ],
+      "solution_en": "The process ends in exactly one of two ways: someone sits in **passenger 1's seat** (everyone after that is seated correctly, so passenger 100 gets theirs), or someone sits in **passenger 100's seat** (they don't).\n\nWhenever someone is forced to choose at random, those two particular seats are symmetric to them and equally likely to be picked. So whichever one is taken first is a coin flip.\n\n$$P = \\frac{1}{2}$$\n\nThe answer does not depend on the number of passengers."
     },
     {
       "chapter": 4,
@@ -173,7 +225,13 @@
         "Itô 引理比鏈鎖律多了一項二階項。",
         "$(dW_t)^2 = dt$。"
       ],
-      "solution_md": "對 $f(x) = x^2$ 用 Itô 引理：\n\n$$df = f'(W_t)\\,dW_t + \\tfrac12 f''(W_t)\\,(dW_t)^2 = 2W_t\\,dW_t + \\tfrac12 \\cdot 2 \\cdot dt$$\n\n$$d(W_t^2) = 2W_t\\,dW_t + dt$$\n\n**為什麼多出 $dt$**：布朗運動的二次變差不為零，$(dW_t)^2 = dt$ 而非 $O(dt^2)$。一般微積分裡二階項可以丟掉，這裡不行。\n\n驗證：兩邊取期望，$E[W_t^2] = 0 + t = t$ ✓。"
+      "solution_md": "對 $f(x) = x^2$ 用 Itô 引理：\n\n$$df = f'(W_t)\\,dW_t + \\tfrac12 f''(W_t)\\,(dW_t)^2 = 2W_t\\,dW_t + \\tfrac12 \\cdot 2 \\cdot dt$$\n\n$$d(W_t^2) = 2W_t\\,dW_t + dt$$\n\n**為什麼多出 $dt$**：布朗運動的二次變差不為零，$(dW_t)^2 = dt$ 而非 $O(dt^2)$。一般微積分裡二階項可以丟掉，這裡不行。\n\n驗證：兩邊取期望，$E[W_t^2] = 0 + t = t$ ✓。",
+      "title_en": "Itô's lemma applied to $W_t^2$",
+      "hints_en": [
+        "Itô's lemma has a second-order term the chain rule does not.",
+        "$(dW_t)^2 = dt$."
+      ],
+      "solution_en": "Apply Itô's lemma to $f(x) = x^2$:\n\n$$df = f'(W_t)\\,dW_t + \\tfrac12 f''(W_t)\\,(dW_t)^2 = 2W_t\\,dW_t + \\tfrac12 \\cdot 2 \\cdot dt$$\n\n$$d(W_t^2) = 2W_t\\,dW_t + dt$$\n\n**Where the $dt$ comes from**: Brownian motion has non-zero quadratic variation, $(dW_t)^2 = dt$ rather than $O(dt^2)$. In ordinary calculus the second-order term is discarded; here it cannot be.\n\nCheck: taking expectations, $E[W_t^2] = 0 + t = t$ ✓."
     },
     {
       "chapter": 4,
@@ -187,7 +245,13 @@
         "$W_t \\sim N(0, t)$。",
         "標準常態的四階矩是 3。"
       ],
-      "solution_md": "$W_t \\sim N(0,t)$，可寫成 $W_t = \\sqrt{t}\\,Z$，其中 $Z \\sim N(0,1)$。\n\n標準常態的偶數階動差為 $E[Z^{2n}] = (2n-1)!!$，所以 $E[Z^4] = 3$。\n\n$$E[W_t^4] = t^2 E[Z^4] = 3t^2$$\n\n也可以用 Itô 做：$d(W^4) = 4W^3 dW + 6W^2 dt$，取期望得 $\\frac{d}{dt}E[W^4] = 6E[W^2] = 6t$，積分得 $3t^2$ ✓。"
+      "solution_md": "$W_t \\sim N(0,t)$，可寫成 $W_t = \\sqrt{t}\\,Z$，其中 $Z \\sim N(0,1)$。\n\n標準常態的偶數階動差為 $E[Z^{2n}] = (2n-1)!!$，所以 $E[Z^4] = 3$。\n\n$$E[W_t^4] = t^2 E[Z^4] = 3t^2$$\n\n也可以用 Itô 做：$d(W^4) = 4W^3 dW + 6W^2 dt$，取期望得 $\\frac{d}{dt}E[W^4] = 6E[W^2] = 6t$，積分得 $3t^2$ ✓。",
+      "title_en": "Fourth moment of Brownian motion",
+      "hints_en": [
+        "$W_t \\sim N(0, t)$.",
+        "The fourth moment of a standard normal is 3."
+      ],
+      "solution_en": "$W_t \\sim N(0,t)$, so write $W_t = \\sqrt{t}\\,Z$ with $Z \\sim N(0,1)$.\n\nThe even moments of a standard normal are $E[Z^{2n}] = (2n-1)!!$, so $E[Z^4] = 3$.\n\n$$E[W_t^4] = t^2 E[Z^4] = 3t^2$$\n\nOr via Itô: $d(W^4) = 4W^3 dW + 6W^2 dt$; taking expectations, $\\frac{d}{dt}E[W^4] = 6E[W^2] = 6t$, which integrates to $3t^2$ ✓."
     },
     {
       "chapter": 4,
@@ -200,7 +264,12 @@
       "hints": [
         "$W_t$ 是鞅，用選擇性抽樣定理。"
       ],
-      "solution_md": "令 $\\tau$ 為首次擊中 $a$ 或 $-b$ 的時刻，$p = P(\\text{先擊中 } a)$。\n\n$W_t$ 是鞅且 $\\tau$ 幾乎必然有限，由選擇性抽樣定理 $E[W_\\tau] = W_0 = 0$：\n\n$$p \\cdot a + (1-p)\\cdot(-b) = 0 \\implies p = \\frac{b}{a+b}$$\n\n直覺檢查：$a$ 越遠（$a$ 越大）先擊中的機率越小 ✓。"
+      "solution_md": "令 $\\tau$ 為首次擊中 $a$ 或 $-b$ 的時刻，$p = P(\\text{先擊中 } a)$。\n\n$W_t$ 是鞅且 $\\tau$ 幾乎必然有限，由選擇性抽樣定理 $E[W_\\tau] = W_0 = 0$：\n\n$$p \\cdot a + (1-p)\\cdot(-b) = 0 \\implies p = \\frac{b}{a+b}$$\n\n直覺檢查：$a$ 越遠（$a$ 越大）先擊中的機率越小 ✓。",
+      "title_en": "Hitting $a$ before $-b$",
+      "hints_en": [
+        "$W_t$ is a martingale — use optional stopping."
+      ],
+      "solution_en": "Let $\\tau$ be the first time $W_t$ hits $a$ or $-b$, and $p = P(\\text{hits } a \\text{ first})$.\n\n$W_t$ is a martingale and $\\tau$ is almost surely finite, so optional stopping gives $E[W_\\tau] = W_0 = 0$:\n\n$$p \\cdot a + (1-p)\\cdot(-b) = 0 \\implies p = \\frac{b}{a+b}$$\n\nSanity check: the further away $a$ is, the smaller the probability of reaching it first ✓."
     },
     {
       "chapter": 5,
@@ -213,7 +282,12 @@
       "hints": [
         "建兩個到期 payoff 相同的組合。"
       ],
-      "solution_md": "$$C - P = S - Ke^{-rT}$$\n\n**證明**：考慮兩個組合\n\n- 組合 A：買一口 call ＋ 持有 $Ke^{-rT}$ 現金\n- 組合 B：買一口 put ＋ 持有一單位標的\n\n到期時兩者的價值都是 $\\max(S_T, K)$。既然到期 payoff 恆等，今天的價格就必須相等，否則存在無風險套利。\n\n$$C + Ke^{-rT} = P + S$$\n\n**注意**：這個關係不需要任何模型假設（不需要 Black–Scholes、不需要對波動率做假設），只需要無套利與可自由借貸。這點面試官很愛追問。"
+      "solution_md": "$$C - P = S - Ke^{-rT}$$\n\n**證明**：考慮兩個組合\n\n- 組合 A：買一口 call ＋ 持有 $Ke^{-rT}$ 現金\n- 組合 B：買一口 put ＋ 持有一單位標的\n\n到期時兩者的價值都是 $\\max(S_T, K)$。既然到期 payoff 恆等，今天的價格就必須相等，否則存在無風險套利。\n\n$$C + Ke^{-rT} = P + S$$\n\n**注意**：這個關係不需要任何模型假設（不需要 Black–Scholes、不需要對波動率做假設），只需要無套利與可自由借貸。這點面試官很愛追問。",
+      "title_en": "Put-call parity",
+      "hints_en": [
+        "Build two portfolios with identical payoffs at expiry."
+      ],
+      "solution_en": "$$C - P = S - Ke^{-rT}$$\n\n**Proof**: consider two portfolios\n\n- A: long one call plus $Ke^{-rT}$ in cash\n- B: long one put plus one unit of the underlying\n\nAt expiry both are worth $\\max(S_T, K)$. Identical payoffs must have identical prices today, or there is a riskless arbitrage.\n\n$$C + Ke^{-rT} = P + S$$\n\n**Note**: this needs no model at all — no Black–Scholes, no assumption about volatility — only no-arbitrage and the ability to borrow and lend. Interviewers like to push on exactly that point."
     },
     {
       "chapter": 6,
@@ -227,7 +301,13 @@
         "總和是已知的。",
         "缺兩個時需要第二個獨立的方程式。"
       ],
-      "solution_md": "**缺一個**：$\\text{missing} = \\frac{n(n+1)}{2} - \\sum a_i$。\n\n**缺兩個** $x, y$：\n\n$$x + y = \\frac{n(n+1)}{2} - \\sum a_i, \\qquad x^2 + y^2 = \\frac{n(n+1)(2n+1)}{6} - \\sum a_i^2$$\n\n兩式解二元方程即可。\n\n**更穩健的做法**（避免溢位）：把所有元素與 $1..n$ 全部 XOR，得到 $x \\oplus y$；取其最低位的 1 當分組依據，把所有數字分成兩堆各自 XOR，即可分離出 $x$ 和 $y$。"
+      "solution_md": "**缺一個**：$\\text{missing} = \\frac{n(n+1)}{2} - \\sum a_i$。\n\n**缺兩個** $x, y$：\n\n$$x + y = \\frac{n(n+1)}{2} - \\sum a_i, \\qquad x^2 + y^2 = \\frac{n(n+1)(2n+1)}{6} - \\sum a_i^2$$\n\n兩式解二元方程即可。\n\n**更穩健的做法**（避免溢位）：把所有元素與 $1..n$ 全部 XOR，得到 $x \\oplus y$；取其最低位的 1 當分組依據，把所有數字分成兩堆各自 XOR，即可分離出 $x$ 和 $y$。",
+      "title_en": "Find the missing number",
+      "hints_en": [
+        "The total sum is known.",
+        "With two missing you need a second independent equation."
+      ],
+      "solution_en": "**One missing**: $\\text{missing} = \\frac{n(n+1)}{2} - \\sum a_i$.\n\n**Two missing**, $x$ and $y$:\n\n$$x + y = \\frac{n(n+1)}{2} - \\sum a_i, \\qquad x^2 + y^2 = \\frac{n(n+1)(2n+1)}{6} - \\sum a_i^2$$\n\nSolve the pair.\n\n**More robust** (no overflow): XOR every element together with $1..n$ to get $x \\oplus y$; take its lowest set bit, split the numbers into two groups by that bit, and XOR each group separately to recover $x$ and $y$."
     }
   ]
 }

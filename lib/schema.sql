@@ -20,11 +20,14 @@ CREATE TABLE IF NOT EXISTS problems (
   title         TEXT NOT NULL,              -- short handle, e.g. 條件機率 · 硬幣三次
   topic         TEXT,                       -- probability | stochastic | ...
   difficulty    TEXT NOT NULL DEFAULT 'medium' CHECK (difficulty IN ('easy','medium','hard')),
+  -- The book is in English, so English is the source language and Chinese is
+  -- the translation — not the other way round. Either side can be missing;
+  -- the reader falls back to whichever exists.
   statement_zh  TEXT NOT NULL,              -- the question, Chinese
   statement_en  TEXT,                       -- the book's own wording
   answer        TEXT,                       -- canonical short answer, e.g. 1/7
-  solution_md   TEXT,                       -- full worked solution (markdown + $latex$)
-  hints         TEXT NOT NULL DEFAULT '[]', -- JSON array, revealed one at a time
+  solution_md   TEXT,                       -- worked solution, Chinese (markdown + $latex$)
+  hints         TEXT NOT NULL DEFAULT '[]', -- JSON array, Chinese, revealed one at a time
   page          INTEGER,                    -- page in the scan, for going back to the book
   source        TEXT NOT NULL DEFAULT 'seed' CHECK (source IN ('seed','ingest','manual')),
   verified      INTEGER NOT NULL DEFAULT 0, -- 1 once a human has proofread the OCR
@@ -77,6 +80,16 @@ CREATE TABLE IF NOT EXISTS settings (
   interview_date TEXT,                      -- ISO date, drives the "interview -83d" chip
   daily_target   INTEGER NOT NULL DEFAULT 12
 );
+
+-- Columns added after the first version of this file shipped. SQLite has no
+-- ADD COLUMN IF NOT EXISTS, so lib/db.ts applies these by inspecting
+-- PRAGMA table_info at startup. Listed here so the schema still reads as one
+-- description of the database.
+--
+--   problems.title_en    TEXT   the book's own heading
+--   problems.solution_en TEXT   the book's own solution, English
+--   problems.hints_en    TEXT   JSON array, English
+--   settings.language    TEXT   'en' | 'zh', which one the reader sees
 
 -- ── LLM 討論 ──────────────────────────────────────────────────────────────
 -- One row per turn. Kept per attempt rather than per problem so that meeting a

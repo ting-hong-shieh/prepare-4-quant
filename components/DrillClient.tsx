@@ -10,7 +10,7 @@ import Rich from './Rich';
 import TutorSheet from './TutorSheet';
 import DerivationPad from './DerivationPad';
 import { isCorrect } from '@/lib/answer';
-import type { SessionItem } from '@/lib/types';
+import { t, type Lang, type LocalisedProblem } from '@/lib/i18n';
 
 const KEYS = ['7', '8', '9', '(', '⌫', '4', '5', '6', ')', '√', '1', '2', '3', '/', '^', '0', '.', 'π', '*', '-'];
 
@@ -18,8 +18,15 @@ const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${S
 
 type Phase = 'answering' | 'feedback';
 
-export default function DrillClient({ sessionId, items }: { sessionId: number; items: SessionItem[] }) {
+export default function DrillClient({
+  sessionId, items, lang,
+}: {
+  sessionId: number;
+  items: { attemptId: number; ordinal: number; problem: LocalisedProblem }[];
+  lang: Lang;
+}) {
   const router = useRouter();
+  const s = t(lang);
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
   const [hintsUsed, setHintsUsed] = useState(0);
@@ -31,7 +38,9 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const item = items[idx];
-  const problem = item?.problem;
+  // Already reduced to one language on the server.
+  const text = item?.problem ?? null;
+  const problem = text;
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt.current) / 1000)), 1000);
@@ -109,12 +118,8 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
     scrollRef.current?.scrollTo({ top: 0 });
   }
 
-  const difficultyLabel = useMemo(
-    () => ({ easy: '簡單', medium: '中等', hard: '困難' }[problem?.difficulty ?? 'medium']),
-    [problem],
-  );
-
-  if (!problem) return null;
+  if (!problem || !text) return null;
+  const difficultyLabel = s.difficulty[problem.difficulty] ?? problem.difficulty;
 
   return (
     <div
@@ -130,7 +135,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
       <div style={{ position: 'relative', zIndex: 2, flex: 'none', padding: '28px 20px 12px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           onClick={() => router.push('/')}
-          aria-label="離開這一組"
+          aria-label={s.leaveSet}
           style={{
             width: 32, height: 32, borderRadius: 99, background: 'rgba(255,255,255,.07)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: '#9A93B0',
@@ -168,29 +173,21 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
       {/* the problem */}
       <div ref={scrollRef} style={{ position: 'relative', zIndex: 2, flex: 1, overflow: 'auto', padding: '8px 20px 16px' }}>
         <div className="mono" style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--drill-muted)', marginBottom: 14 }}>
-          {problem.topic ?? '題目'} · {difficultyLabel} · 第 {idx + 1}／{items.length} 題
+          {problem.topic ?? '—'} · {difficultyLabel} · {s.problemOf(idx + 1, items.length)}
         </div>
 
         <Rich
-          md={problem.statement_zh}
-          style={{ fontSize: 19, lineHeight: 1.62, fontWeight: 500, color: 'var(--drill-fg-strong)', marginBottom: 12 }}
+          md={text.statement}
+          style={{
+            fontSize: 19, lineHeight: 1.62, fontWeight: 500, color: 'var(--drill-fg-strong)',
+            paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,.08)',
+          }}
         />
-        {problem.statement_en && (
-          <div
-            className="serif"
-            style={{
-              fontSize: 14.5, lineHeight: 1.55, color: 'var(--drill-soft)',
-              paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,.08)',
-            }}
-          >
-            {problem.statement_en}
-          </div>
-        )}
 
         <div style={{ marginTop: 18, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 18, padding: '16px 18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-            <span className="mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--drill-muted)' }}>ANSWER</span>
-            <span style={{ fontSize: 11, color: '#6B6488' }}>可輸入 1/7、sqrt(pi)/2</span>
+            <span className="mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--drill-muted)' }}>{s.answer}</span>
+            <span style={{ fontSize: 11, color: '#6B6488' }}>{s.answerHint}</span>
           </div>
           <div className="mono" style={{ fontSize: 30, fontWeight: 500, color: 'var(--drill-fg-strong)', wordBreak: 'break-all', minHeight: 40 }}>
             {answer}
@@ -198,7 +195,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
           </div>
         </div>
 
-        {problem.hints.slice(0, hintsUsed).map((h, i) => (
+        {text.hints.slice(0, hintsUsed).map((h, i) => (
           <div
             key={i}
             style={{
@@ -211,7 +208,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
           </div>
         ))}
 
-        {phase === 'answering' && hintsUsed < problem.hints.length && (
+        {phase === 'answering' && hintsUsed < text.hints.length && (
           <button
             onClick={() => setHintsUsed(n => n + 1)}
             className="mono"
@@ -221,11 +218,11 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
               textTransform: 'uppercase', color: 'var(--drill-muted)',
             }}
           >
-            提示 {hintsUsed + 1} / {problem.hints.length}
+            {s.hintN(hintsUsed + 1, text.hints.length)}
           </button>
         )}
 
-        <DerivationPad key={`d-${item.attemptId}`} attemptId={item.attemptId} />
+        <DerivationPad key={`d-${item.attemptId}`} attemptId={item.attemptId} lang={lang} />
 
         {phase === 'feedback' && (
           <div style={{ marginTop: 18 }}>
@@ -237,14 +234,14 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
               }}
             >
               <span className="mono" style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: verdict === 'correct' ? 'var(--green)' : 'var(--orange)' }}>
-                {verdict === 'correct' ? 'correct' : verdict === 'revealed' ? 'revealed' : 'wrong'}
+                {verdict === 'correct' ? s.correct : verdict === 'revealed' ? s.revealed : s.wrong}
               </span>
               <span className="mono" style={{ fontSize: 15, color: 'var(--drill-fg-strong)' }}>{problem.answer}</span>
             </div>
 
-            {problem.solution_md && (
+            {text.solution && (
               <Rich
-                md={problem.solution_md}
+                md={text.solution}
                 style={{ marginTop: 16, fontSize: 15, lineHeight: 1.72, color: 'var(--drill-hint)' }}
               />
             )}
@@ -284,7 +281,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
                   justifyContent: 'center', fontSize: 14, fontWeight: 600, color: 'var(--drill-hint)',
                 }}
               >
-                先看解答
+                {s.reveal}
               </button>
               <button
                 onClick={submit}
@@ -295,7 +292,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
                   fontSize: 15.5, fontWeight: 700, opacity: answer.trim() ? 1 : 0.4,
                 }}
               >
-                提交
+                {s.submit}
               </button>
             </>
           ) : (
@@ -306,7 +303,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15.5, fontWeight: 700,
               }}
             >
-              {idx + 1 >= items.length ? '看成績' : '下一題'}
+              {idx + 1 >= items.length ? s.seeScore : s.next}
             </button>
           )}
         </div>
@@ -316,6 +313,7 @@ export default function DrillClient({ sessionId, items }: { sessionId: number; i
         key={`t-${item.attemptId}`}
         attemptId={item.attemptId}
         phase={phase === 'feedback' ? 'reviewing' : 'thinking'}
+        lang={lang}
         open={tutorOpen}
         onClose={() => setTutorOpen(false)}
       />

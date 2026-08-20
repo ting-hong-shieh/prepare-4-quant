@@ -9,12 +9,18 @@ import { useEffect, useMemo, useState } from 'react';
 import Rich from './Rich';
 import type { ReviewRow } from '@/lib/reviewQueries';
 
-const FIELD_LABEL: Record<string, string> = {
-  title: '標題',
-  statement_zh: '題目（中文）',
+// English first, because the book is in English and that side is the source —
+// the Chinese fields below it are the translation to check against it.
+const FIELDS = ['title_en', 'statement_en', 'solution_en', 'answer', 'title', 'statement_zh', 'solution_md'] as const;
+
+const FIELD_LABEL: Record<(typeof FIELDS)[number], string> = {
+  title_en: '標題（原文）',
   statement_en: '題目（原文）',
+  solution_en: '解答（原文）',
   answer: '答案',
-  solution_md: '解答',
+  title: '標題（中文）',
+  statement_zh: '題目（中文）',
+  solution_md: '解答（中文）',
 };
 
 export default function ReviewClient({
@@ -28,10 +34,13 @@ export default function ReviewClient({
   const row = rows[idx];
   useEffect(() => { setDraft(row ?? null); }, [row]);
 
-  const preview = useMemo(
-    () => [draft?.statement_zh, draft?.solution_md].filter(Boolean).join('\n\n'),
-    [draft],
-  );
+  const [previewLang, setPreviewLang] = useState<'en' | 'zh'>('en');
+  const preview = useMemo(() => {
+    const parts = previewLang === 'en'
+      ? [draft?.statement_en, draft?.solution_en]
+      : [draft?.statement_zh, draft?.solution_md];
+    return parts.filter(Boolean).join('\n\n');
+  }, [draft, previewLang]);
 
   async function save(verified: boolean) {
     if (!draft) return;
@@ -96,13 +105,13 @@ export default function ReviewClient({
 
         {/* the fields */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {(['title', 'statement_zh', 'statement_en', 'answer', 'solution_md'] as const).map(f => (
+          {FIELDS.map(f => (
             <label key={f} style={{ display: 'block' }}>
               <span className="eyebrow" style={{ display: 'block', marginBottom: 6 }}>{FIELD_LABEL[f]}</span>
               <textarea
                 value={(draft?.[f] as string) ?? ''}
                 onChange={e => setDraft(d => (d ? { ...d, [f]: e.target.value } : d))}
-                rows={f === 'solution_md' ? 12 : f === 'title' || f === 'answer' ? 1 : 4}
+                rows={f.startsWith('solution') ? 12 : f.startsWith('title') || f === 'answer' ? 1 : 4}
                 spellCheck={false}
                 className="mono"
                 style={{
@@ -114,7 +123,24 @@ export default function ReviewClient({
           ))}
 
           <div>
-            <span className="eyebrow" style={{ display: 'block', marginBottom: 6 }}>渲染後</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <span className="eyebrow">渲染後</span>
+              {(['en', 'zh'] as const).map(l => (
+                <button
+                  key={l}
+                  onClick={() => setPreviewLang(l)}
+                  className="mono"
+                  style={{
+                    fontSize: 9.5, letterSpacing: '.12em', padding: '2px 7px', borderRadius: 999,
+                    border: '1px solid var(--rule)',
+                    background: previewLang === l ? 'var(--paper)' : 'transparent',
+                    color: previewLang === l ? 'var(--ink)' : 'var(--muted)',
+                  }}
+                >
+                  {l === 'en' ? 'EN' : '中'}
+                </button>
+              ))}
+            </div>
             <div style={{ border: '1px solid var(--rule)', borderRadius: 6, padding: '12px 14px', fontSize: 14, lineHeight: 1.7 }}>
               <Rich md={preview} />
             </div>

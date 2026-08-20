@@ -29,31 +29,35 @@ Rules:
 - Set every formula in LaTeX between $…$ (inline) or $$…$$ (display). The scan
   renders sub/superscripts small — read them carefully; a wrong subscript makes
   the problem wrong.
-- statement_zh is a Traditional Chinese (Taiwan) translation of the problem
-  statement for a reader who already knows the mathematics: keep the LaTeX
-  identical, translate only the prose, and keep standard English terms
-  (martingale, Itô, call, put) where a Taiwanese quant would use them.
-- solution_md is the book's own solution, in Traditional Chinese, as markdown
-  with $…$ maths. Keep the structure of the argument.
+- The book is in English, so English is the source: statement_en and
+  solution_en are the book's own words, transcribed, not re-derived.
+- statement_zh and solution_zh are Traditional Chinese (Taiwan) translations
+  for a reader who already knows the mathematics: keep the LaTeX identical,
+  translate only the prose, and keep standard English terms (martingale, Itô,
+  call, put) where a Taiwanese quant would use them.
 - answer is the final short answer alone, in a form a keypad can produce:
   "1/7", "sqrt(pi)", "3t^2", "b/(a+b)". Use null when the problem asks for a
   construction or a proof rather than a value.
-- hints are 1–3 short nudges you write yourself, ordered weakest first. A hint
-  points at the idea; it never gives the answer away.
+- hints_en and hints_zh are 1–3 short nudges you write yourself, ordered
+  weakest first, the same hints in both languages. A hint points at the idea;
+  it never gives the answer away.
 - If the pages you were given do not contain the whole problem and solution, say
   so in `truncated` rather than inventing the missing part.\
 """
 
 
 class Extracted(BaseModel):
+    title_en: str = Field(description="the book's own heading, verbatim")
     title_zh: str = Field(description="short Chinese handle, e.g. 條件機率 · 硬幣三次")
     statement_en: str = Field(description="the book's own statement, verbatim, LaTeX for maths")
     statement_zh: str = Field(description="Traditional Chinese translation of the statement")
-    solution_md: str = Field(description="the book's solution in Traditional Chinese markdown")
+    solution_en: str = Field(description="the book's own solution as markdown, English")
+    solution_zh: str = Field(description="Traditional Chinese translation of the solution")
     answer: str | None
     difficulty: str = Field(description="easy | medium | hard")
     topic: str = Field(description="one lowercase english tag, e.g. probability, stochastic, algorithms")
-    hints: list[str] = Field(description="1-3 short Chinese nudges you write yourself, weakest first")
+    hints_en: list[str] = Field(description="1-3 short English nudges you write yourself, weakest first")
+    hints_zh: list[str] = Field(description="the same hints in Traditional Chinese")
     truncated: bool = Field(description="true if the given pages did not contain the whole problem")
 
 
@@ -161,20 +165,23 @@ def main() -> None:
 
         conn.execute(
             """INSERT INTO problems
-               (chapter_id, ordinal, title, topic, difficulty, statement_zh, statement_en,
-                answer, solution_md, hints, page, source, verified)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?, 'ingest', 0)""",
+               (chapter_id, ordinal, title, title_en, topic, difficulty,
+                statement_zh, statement_en, answer, solution_md, solution_en,
+                hints, hints_en, page, source, verified)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'ingest', 0)""",
             (
-                chapter_id, ordinal, e.title_zh, e.topic,
+                chapter_id, ordinal, e.title_zh, e.title_en, e.topic,
                 e.difficulty if e.difficulty in ("easy", "medium", "hard") else "medium",
-                e.statement_zh, e.statement_en, e.answer, e.solution_md,
-                json.dumps(e.hints[:3], ensure_ascii=False), j["page"],
+                e.statement_zh, e.statement_en, e.answer, e.solution_zh, e.solution_en,
+                json.dumps(e.hints_zh[:3], ensure_ascii=False),
+                json.dumps(e.hints_en[:3], ensure_ascii=False),
+                j["page"],
             ),
         )
         conn.commit()
         added += 1
         flag = "  ⚠ 頁面不足，複查" if e.truncated else ""
-        print(f"  + {e.title_zh}  (p{j['page']}, {len(j['pages'])} 頁){flag}", flush=True)
+        print(f"  + {e.title_en}  (p{j['page']}, {len(j['pages'])} 頁){flag}", flush=True)
 
     print(f"完成：新增 {added} 題，略過 {skipped} 題（已抽過）。全部 verified=0，請到 /review 校對。")
 

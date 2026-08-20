@@ -1,6 +1,8 @@
 import Database from 'better-sqlite3';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+// Plain JS module, shared with the CLI scripts so the list lives in one place.
+import { migrate } from './migrations.mjs';
 
 const DB_PATH = process.env.QUANT_DB ?? path.join(process.cwd(), 'data', 'quant.db');
 
@@ -17,6 +19,8 @@ export function getDb(): Database.Database {
   const db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
   db.exec(readFileSync(path.join(process.cwd(), 'lib', 'schema.sql'), 'utf8'));
+  migrate(db);
   globalForDb.__quantDb = db;
   return db;
 }
+

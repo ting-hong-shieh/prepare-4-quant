@@ -13,7 +13,11 @@ export function listForReview(all: boolean): ReviewRow[] {
      ${all ? '' : 'WHERE p.verified = 0'}
      ORDER BY c.no, p.ordinal
   `).all() as any[];
-  return rows.map(r => ({ ...r, hints: JSON.parse(r.hints || '[]') }));
+  return rows.map(r => ({
+    ...r,
+    hints: JSON.parse(r.hints || '[]'),
+    hints_en: JSON.parse(r.hints_en || '[]'),
+  }));
 }
 
 export function reviewCounts() {
