@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.venv/
+.env.local
+next-env.d.ts
+*.tsbuildinfo
+
+# The scanned book and everything derived from it stays local — never commit.
+*.pdf
+*.pdf:Zone.Identifier
+# WAL mode writes two sidecar files that hold real database content — the
+# plain *.db pattern does not cover them.
+data/*.db
+data/*.db-*
+data/pages/
+data/extract/
