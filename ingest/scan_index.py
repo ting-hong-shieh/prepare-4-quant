@@ -18,7 +18,7 @@ import sys
 
 from pydantic import BaseModel, Field
 
-from common import DEFAULT_MODEL, EXTRACT, PAGES, client, page_image
+from common import EXTRACT, PAGES, credentials_error, model_name, structured
 
 SYSTEM = """\
 You are indexing scanned pages of a quantitative-finance interview textbook.
@@ -61,9 +61,11 @@ def parse_range(spec: str, available: list[int]) -> list[int]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pages", default="")
-    ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--force", action="store_true", help="rescan pages already in the index")
     args = ap.parse_args()
+
+    if (err := credentials_error()):
+        sys.exit(err)
 
     EXTRACT.mkdir(parents=True, exist_ok=True)
     index_path = EXTRACT / "index.jsonl"
@@ -78,27 +80,26 @@ def main() -> None:
     if not available:
         sys.exit("data/pages 是空的 —— 先跑 ingest/render_pages.py")
     todo = [p for p in parse_range(args.pages, available) if p not in done]
-    print(f"要掃 {len(todo)} 頁（已完成 {len(done)}）")
+    print(f"要掃 {len(todo)} 頁（已完成 {len(done)}），用 {model_name()}")
 
-    c = client()
+    failed = 0
     with index_path.open("a", encoding="utf-8") as out:
         for n in todo:
-            resp = c.messages.parse(
-                model=args.model,
-                max_tokens=2000,
-                system=SYSTEM,
-                output_config={"effort": "low"},
-                messages=[{
-                    "role": "user",
-                    "content": [page_image(n), {"type": "text", "text": f"Scan page image {n}."}],
-                }],
-                output_format=PageScan,
-            )
-            scan = resp.parsed_output
+            try:
+                scan = structured(SYSTEM, [n], f"Scan this page.", PageScan, effort="low")
+            except Exception as e:
+                # One unreadable page must not take the whole run down; the page
+                # simply stays out of the index and can be rescanned later.
+                failed += 1
+                print(f"p{n:04d}  ✗ {type(e).__name__}: {e}", flush=True)
+                continue
             out.write(json.dumps({"page": n, **scan.model_dump()}, ensure_ascii=False) + "\n")
             out.flush()
             titles = ", ".join(p.heading for p in scan.problem_starts) or "—"
             print(f"p{n:04d} (印刷頁 {scan.printed_page}): {titles}", flush=True)
+
+    if failed:
+        print(f"\n{failed} 頁失敗，沒有寫進索引 —— 重跑一次會只補這些頁。")
 
     print(f"索引 → {index_path}")
 

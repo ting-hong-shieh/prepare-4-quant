@@ -17,7 +17,7 @@ import sys
 
 from pydantic import BaseModel, Field
 
-from common import DEFAULT_MODEL, EXTRACT, client, db, page_image
+from common import EXTRACT, credentials_error, db, model_name, structured
 
 SYSTEM = """\
 You are transcribing one problem from a scanned quantitative-finance interview
@@ -113,21 +113,22 @@ def ensure_chapter(conn, no: int | None, title: str | None) -> int:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--limit", type=int, default=0, help="stop after N problems (use for a trial run)")
     ap.add_argument("--chapter", type=int, default=0, help="only this chapter number")
     args = ap.parse_args()
+
+    if (err := credentials_error()):
+        sys.exit(err)
 
     jobs = plan(load_index())
     if args.chapter:
         jobs = [j for j in jobs if j["chapter_no"] == args.chapter]
     if args.limit:
         jobs = jobs[: args.limit]
-    print(f"要抽 {len(jobs)} 題")
+    print(f"要抽 {len(jobs)} 題，用 {model_name()}")
 
-    c = client()
     conn = db()
-    added = skipped = 0
+    added = skipped = failed = 0
 
     for j in jobs:
         chapter_id = ensure_chapter(conn, j["chapter_no"], j["chapter_title"])
@@ -139,24 +140,18 @@ def main() -> None:
             skipped += 1
             continue
 
-        content = [page_image(p) for p in j["pages"]]
-        content.append({
-            "type": "text",
-            "text": (
-                f'Transcribe the problem headed "{j["heading"]}", which begins on the first '
-                f"page shown. Ignore any other problem on these pages."
-            ),
-        })
-
-        resp = c.messages.parse(
-            model=args.model,
-            max_tokens=8000,
-            system=SYSTEM,
-            output_config={"effort": "high"},
-            messages=[{"role": "user", "content": content}],
-            output_format=Extracted,
+        ask = (
+            f'Transcribe the problem headed "{j["heading"]}", which begins on the first '
+            f"page shown. Ignore any other problem on these pages."
         )
-        e = resp.parsed_output
+        try:
+            e = structured(SYSTEM, j["pages"], ask, Extracted, effort="high")
+        except Exception as exc:
+            # Skip and keep going — the run is long, and a failed problem is
+            # picked up on the next pass because nothing was written for it.
+            failed += 1
+            print(f"  ✗ {j['heading']}  (p{j['page']}): {type(exc).__name__}: {exc}", flush=True)
+            continue
 
         ordinal = conn.execute(
             "SELECT COALESCE(MAX(ordinal), 0) + 1 AS n FROM problems WHERE chapter_id = ?",
@@ -183,7 +178,10 @@ def main() -> None:
         flag = "  ⚠ 頁面不足，複查" if e.truncated else ""
         print(f"  + {e.title_en}  (p{j['page']}, {len(j['pages'])} 頁){flag}", flush=True)
 
-    print(f"完成：新增 {added} 題，略過 {skipped} 題（已抽過）。全部 verified=0，請到 /review 校對。")
+    msg = f"完成：新增 {added} 題，略過 {skipped} 題（已抽過）"
+    if failed:
+        msg += f"，{failed} 題失敗（重跑會補）"
+    print(msg + "。全部 verified=0，請到 /review 校對。")
 
 
 if __name__ == "__main__":

@@ -38,16 +38,28 @@ WSL 重開後內部 IP 會變，portproxy 要重下 —— 先 `netsh interface 
 
 ## 把整本書灌進去
 
-需要 Python 環境與 Claude API 憑證（`ANTHROPIC_API_KEY`，或跑過 `ant auth login`）。
-
 ```bash
-python3 -m venv .venv && .venv/bin/pip install pymupdf anthropic pydantic
-.venv/bin/python ingest/render_pages.py                 # PDF → data/pages/*.png
-.venv/bin/python ingest/scan_index.py --pages 1-40      # 先小範圍試
-.venv/bin/python ingest/extract.py --limit 3            # 先抽三題看品質
+python3 -m venv .venv && .venv/bin/pip install pymupdf google-genai pydantic
+GEMINI_API_KEY=... ingest/run_all.sh
 ```
 
-品質可以接受再跑整本（拿掉 `--pages` / `--limit`）。兩個腳本都會續跑，中斷再開不會重複做。
+一路跑完：算圖 → 掃結構 → 抽題目。**兩趟都會續跑**，中斷了再執行一次會從斷點接下去，不會重複做也不會重來。
+
+先試品質再跑整本的話：
+
+```bash
+export GEMINI_API_KEY=...
+.venv/bin/python ingest/scan_index.py --pages 20-40
+.venv/bin/python ingest/extract.py --limit 3
+```
+
+跟助教一樣可以換供應商：`INGEST_PROVIDER=claude` 搭配 `ANTHROPIC_API_KEY`。
+
+### 大概多少錢
+
+Gemini 3.7 Flash 是 $0.75 / M input、$3.75 / M output（含 thinking token，2026 年底前）。以 213 頁、每頁圖片約 1.5k token 估：pass A 約 $0.6，pass B 看抽出幾題（要等 pass A 跑完才知道），200 題上下的話約 $2.5 —— **整本大約 3 美金**。
+
+這是估的，不是實測 —— 沒有金鑰所以我沒跑過。實際跑完看 log 就知道真正的數字。
 
 ### 為什麼分兩趟
 
