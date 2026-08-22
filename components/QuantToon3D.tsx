@@ -183,6 +183,13 @@ export default function QuantToon3D({ done, total, sky = 0.3, mode = 'dark', hei
     scene.add(sparkles);
 
     const filledCubes = cubes.filter(c => c.userData.filled);
+    // Sparkles celebrate finished chapters, so their count follows the number
+    // of finished chapters. Spawning the full set regardless meant that at zero
+    // or one they all piled onto a single cube and the scene became one white
+    // blob — the opposite of celebrating anything.
+    const activeSparkles = filledCubes.length
+      ? Math.min(N, 16 + filledCubes.length * 16)
+      : 0;
     const spawn = (i: number, spread?: number) => {
       const host2 = filledCubes.length ? filledCubes[(Math.random() * filledCubes.length) | 0] : cubes[0];
       const s = spread || 0.85;
@@ -200,6 +207,7 @@ export default function QuantToon3D({ done, total, sky = 0.3, mode = 'dark', hei
       spawn(i);
       sLife[i] = Math.random() * sMax[i];
       sA[i] = 0;
+      if (i >= activeSparkles) sSize[i] = 0; // parked: never drawn
     }
 
     let burstAt = -1e9;
@@ -255,7 +263,7 @@ export default function QuantToon3D({ done, total, sky = 0.3, mode = 'dark', hei
 
       const bursting = now / 1000 - burstAt < 1.4;
       const rate = bursting ? 4.5 : 1;
-      for (let i = 0; i < N; i++) {
+      for (let i = 0; i < activeSparkles; i++) {
         sLife[i] += dt * rate;
         if (sLife[i] > sMax[i]) spawn(i, bursting ? 1.9 : 0.85);
         const k = sLife[i] / sMax[i];

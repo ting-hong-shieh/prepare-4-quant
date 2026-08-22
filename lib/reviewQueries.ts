@@ -1,4 +1,4 @@
-import { getDb } from './db';
+import { getDb, q } from './db';
 import type { Problem } from './types';
 
 export interface ReviewRow extends Problem {
@@ -7,7 +7,7 @@ export interface ReviewRow extends Problem {
 }
 
 export function listForReview(all: boolean): ReviewRow[] {
-  const rows = getDb().prepare(`
+  const rows = q(`
     SELECT p.*, c.no AS chapter_no, c.title_zh AS chapter_title
       FROM problems p JOIN chapters c ON c.id = p.chapter_id
      ${all ? '' : 'WHERE p.verified = 0'}
@@ -23,7 +23,7 @@ export function listForReview(all: boolean): ReviewRow[] {
 
 export function reviewCounts() {
   const db = getDb();
-  const total = (db.prepare('SELECT COUNT(*) AS n FROM problems').get() as { n: number }).n;
-  const pending = (db.prepare('SELECT COUNT(*) AS n FROM problems WHERE verified = 0').get() as { n: number }).n;
+  const total = (q('SELECT COUNT(*) AS n FROM problems').get() as { n: number }).n;
+  const pending = (q('SELECT COUNT(*) AS n FROM problems WHERE verified = 0').get() as { n: number }).n;
   return { total, pending };
 }

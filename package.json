@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "db:init": "node scripts/init-db.mjs",
     "db:seed": "node scripts/seed.mjs",
-    "backup": "node scripts/backup.mjs"
+    "backup": "node scripts/backup.mjs",
+    "shots": "node scripts/screenshot.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
@@ -28,6 +29,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@types/three": "^0.169.0",
+    "playwright": "^1.62.1",
     "typescript": "^5.8.3"
   }
 }

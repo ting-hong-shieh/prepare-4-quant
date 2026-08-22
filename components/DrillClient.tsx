@@ -166,7 +166,7 @@ export default function DrillClient({
             color: 'var(--accent)',
           }}
         >
-          助教
+          {s.tutor}
         </button>
         <div className="mono" style={{ fontWeight: 700, fontSize: 13, color: 'var(--drill-bg)', background: 'var(--timer)', padding: '6px 11px', borderRadius: 99 }}>
           {clock(elapsed)}
@@ -175,13 +175,20 @@ export default function DrillClient({
 
       {/* the problem */}
       <div ref={scrollRef} style={{ position: 'relative', zIndex: 2, flex: 1, overflow: 'auto', padding: '8px 20px 16px' }}>
-        <div className="mono" style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--drill-muted)', marginBottom: 14 }}>
-          {problem.topic ?? '—'} · {difficultyLabel} · {s.problemOf(idx + 1, items.length)}
+        <div
+          className="mono"
+          style={{
+            fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--drill-muted)',
+            marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+          }}
+        >
+          <span>{problem.topic ?? '—'} · {difficultyLabel} · {s.problemOf(idx + 1, items.length)}</span>
           {!problem.verified && !checked.has(problem.id) && (
             <span
               style={{
-                marginLeft: 8, padding: '2px 7px', borderRadius: 999, textTransform: 'none',
+                flex: 'none', padding: '2px 7px', borderRadius: 999, textTransform: 'none',
                 letterSpacing: '.04em', border: '1px solid rgba(255,196,77,.45)', color: 'var(--timer)',
+                whiteSpace: 'nowrap',
               }}
             >
               {s.unchecked}

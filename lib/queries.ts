@@ -1,4 +1,4 @@
-import { getDb } from './db';
+import { getDb, q } from './db';
 import { schedule, gradeFromOutcome, type ReviewState } from './review';
 import type { Lang } from './i18n';
 import type { Chapter, ChapterProgress, Overview, Problem, SessionItem } from './types';
@@ -17,7 +17,7 @@ function hydrate(row: any): Problem {
 export function getOverview(): Overview {
   const db = getDb();
 
-  const chapters = db.prepare(`
+  const chapters = q(`
     SELECT c.id, c.no, c.title_zh, c.title_en,
            COUNT(p.id) AS total,
            COUNT(r.problem_id) FILTER (WHERE r.reps > 0) AS done
@@ -31,15 +31,15 @@ export function getOverview(): Overview {
   const totalProblems = chapters.reduce((n, c) => n + c.total, 0);
   const doneProblems = chapters.reduce((n, c) => n + c.done, 0);
 
-  const settings = db.prepare('SELECT * FROM settings WHERE id = 1').get() as
+  const settings = q('SELECT * FROM settings WHERE id = 1').get() as
     { interview_date: string | null; daily_target: number } | undefined;
 
-  const dueCount = (db.prepare(
+  const dueCount = (q(
     `SELECT COUNT(*) AS n FROM reviews WHERE due_at <= ?`
   ).get(new Date().toISOString()) as { n: number }).n;
 
   // Streak: consecutive days back from today with at least one finished attempt.
-  const days = (db.prepare(
+  const days = (q(
     `SELECT DISTINCT date(ended_at) AS d FROM attempts WHERE ended_at IS NOT NULL ORDER BY d DESC`
   ).all() as { d: string }[]).map(r => r.d);
   let streakDays = 0;
@@ -55,7 +55,7 @@ export function getOverview(): Overview {
     : null;
 
   // Projected finish: 14-day trailing rate, or the daily target if there is no history yet.
-  const recent = (db.prepare(
+  const recent = (q(
     `SELECT COUNT(*) AS n FROM attempts
       WHERE ended_at >= datetime('now', '-14 days') AND outcome IS NOT NULL`
   ).get() as { n: number }).n;
@@ -87,10 +87,10 @@ export function getOverview(): Overview {
 function planToday(target: number) {
   const db = getDb();
   const now = new Date().toISOString();
-  const review = (db.prepare(
+  const review = (q(
     `SELECT COUNT(*) AS n FROM reviews WHERE due_at <= ? AND lapses = 0`
   ).get(now) as { n: number }).n;
-  const missed = (db.prepare(
+  const missed = (q(
     `SELECT COUNT(*) AS n FROM reviews WHERE due_at <= ? AND lapses > 0`
   ).get(now) as { n: number }).n;
   const cappedReview = Math.min(review, target);
@@ -102,14 +102,14 @@ function planToday(target: number) {
 /** Pick the problems for a session and persist it. Returns the session id. */
 export function createSession(kind: 'daily' | 'chapter' | 'mock' = 'daily', chapterId?: number): number {
   const db = getDb();
-  const settings = db.prepare('SELECT daily_target FROM settings WHERE id = 1').get() as
+  const settings = q('SELECT daily_target FROM settings WHERE id = 1').get() as
     { daily_target: number } | undefined;
   const target = settings?.daily_target ?? 12;
   const now = new Date().toISOString();
 
   const chapterFilter = chapterId ? 'AND p.chapter_id = ?' : '';
   const dueArgs: unknown[] = chapterId ? [now, chapterId, target] : [now, target];
-  const due = db.prepare(`
+  const due = q(`
     SELECT p.* FROM problems p
       JOIN reviews r ON r.problem_id = p.id
      WHERE r.due_at <= ? ${chapterFilter}
@@ -119,7 +119,7 @@ export function createSession(kind: 'daily' | 'chapter' | 'mock' = 'daily', chap
 
   const freshLimit = Math.max(0, target - due.length);
   const freshArgs: unknown[] = chapterId ? [chapterId, freshLimit] : [freshLimit];
-  const fresh = freshLimit === 0 ? [] : db.prepare(`
+  const fresh = freshLimit === 0 ? [] : q(`
     SELECT p.* FROM problems p
      WHERE p.id NOT IN (SELECT problem_id FROM reviews)
        ${chapterFilter}
@@ -131,9 +131,9 @@ export function createSession(kind: 'daily' | 'chapter' | 'mock' = 'daily', chap
   if (picked.length === 0) throw new Error('沒有可以排入的題目 —— 題庫是空的，先跑 ingestion 或 npm run db:seed。');
 
   const sessionId = Number(
-    db.prepare('INSERT INTO sessions (created_at, kind) VALUES (?, ?)').run(now, kind).lastInsertRowid
+    q('INSERT INTO sessions (created_at, kind) VALUES (?, ?)').run(now, kind).lastInsertRowid
   );
-  const insert = db.prepare(
+  const insert = q(
     'INSERT INTO attempts (session_id, problem_id, ordinal, started_at) VALUES (?, ?, ?, ?)'
   );
   picked.forEach((p, i) => insert.run(sessionId, p.id, i, now));
@@ -142,11 +142,11 @@ export function createSession(kind: 'daily' | 'chapter' | 'mock' = 'daily', chap
 
 export function getSession(sessionId: number): { id: number; ended_at: string | null; items: SessionItem[] } {
   const db = getDb();
-  const session = db.prepare('SELECT id, ended_at FROM sessions WHERE id = ?').get(sessionId) as
+  const session = q('SELECT id, ended_at FROM sessions WHERE id = ?').get(sessionId) as
     { id: number; ended_at: string | null } | undefined;
   if (!session) throw new Error(`session ${sessionId} 不存在`);
 
-  const rows = db.prepare(`
+  const rows = q(`
     SELECT a.id AS attempt_id, a.ordinal, p.*
       FROM attempts a JOIN problems p ON p.id = a.problem_id
      WHERE a.session_id = ?
@@ -171,23 +171,23 @@ export function submitAttempt(input: {
   hintsUsed: number;
 }) {
   const db = getDb();
-  const attempt = db.prepare('SELECT problem_id FROM attempts WHERE id = ?').get(input.attemptId) as
+  const attempt = q('SELECT problem_id FROM attempts WHERE id = ?').get(input.attemptId) as
     { problem_id: number } | undefined;
   if (!attempt) throw new Error(`attempt ${input.attemptId} 不存在`);
 
   const grade = gradeFromOutcome(input.outcome, input.hintsUsed);
 
-  db.prepare(`
+  q(`
     UPDATE attempts
        SET ended_at = ?, seconds = ?, answer = ?, outcome = ?, grade = ?, hints_used = ?
      WHERE id = ?
   `).run(new Date().toISOString(), input.seconds, input.answer, input.outcome, grade, input.hintsUsed, input.attemptId);
 
-  const prev = db.prepare('SELECT * FROM reviews WHERE problem_id = ?').get(attempt.problem_id) as
+  const prev = q('SELECT * FROM reviews WHERE problem_id = ?').get(attempt.problem_id) as
     (ReviewState & { problem_id: number }) | undefined;
   const next = schedule(prev ?? null, grade);
 
-  db.prepare(`
+  q(`
     INSERT INTO reviews (problem_id, due_at, interval_days, ease, reps, lapses, last_grade)
     VALUES (@problem_id, @due_at, @interval_days, @ease, @reps, @lapses, @last_grade)
     ON CONFLICT(problem_id) DO UPDATE SET
@@ -200,13 +200,13 @@ export function submitAttempt(input: {
 }
 
 export function endSession(sessionId: number) {
-  getDb().prepare('UPDATE sessions SET ended_at = ? WHERE id = ? AND ended_at IS NULL')
+  q('UPDATE sessions SET ended_at = ? WHERE id = ? AND ended_at IS NULL')
     .run(new Date().toISOString(), sessionId);
 }
 
 export function getSessionResult(sessionId: number) {
   const db = getDb();
-  const rows = db.prepare(`
+  const rows = q(`
     SELECT a.ordinal, a.seconds, a.outcome, a.grade, p.title, p.title_en, p.topic
       FROM attempts a JOIN problems p ON p.id = a.problem_id
      WHERE a.session_id = ? AND a.ended_at IS NOT NULL
@@ -228,7 +228,7 @@ export function getSessionResult(sessionId: number) {
 }
 
 export function listChapters(): Chapter[] {
-  return getDb().prepare('SELECT id, no, title_zh, title_en FROM chapters ORDER BY no').all() as Chapter[];
+  return q('SELECT id, no, title_zh, title_en FROM chapters ORDER BY no').all() as Chapter[];
 }
 
 // ── LLM 討論 ───────────────────────────────────────────────────────────────
@@ -242,7 +242,7 @@ export interface AttemptContext {
 }
 
 export function getAttemptContext(attemptId: number): AttemptContext {
-  const row = getDb().prepare(`
+  const row = q(`
     SELECT a.id AS attempt_id, a.ended_at, a.outcome, p.*
       FROM attempts a JOIN problems p ON p.id = a.problem_id
      WHERE a.id = ?
@@ -259,15 +259,13 @@ export function getAttemptContext(attemptId: number): AttemptContext {
 export interface ChatTurn { id: number; role: 'user' | 'assistant'; content: string; phase: string }
 
 export function getChat(attemptId: number): ChatTurn[] {
-  return getDb()
-    .prepare('SELECT id, role, content, phase FROM chats WHERE attempt_id = ? ORDER BY id')
+  return q('SELECT id, role, content, phase FROM chats WHERE attempt_id = ? ORDER BY id')
     .all(attemptId) as ChatTurn[];
 }
 
 export function appendChat(attemptId: number, role: 'user' | 'assistant', content: string, phase: string): number {
   return Number(
-    getDb()
-      .prepare('INSERT INTO chats (attempt_id, role, content, phase, created_at) VALUES (?,?,?,?,?)')
+    q('INSERT INTO chats (attempt_id, role, content, phase, created_at) VALUES (?,?,?,?,?)')
       .run(attemptId, role, content, phase, new Date().toISOString()).lastInsertRowid,
   );
 }
@@ -289,7 +287,7 @@ export function saveDerivation(attemptId: number, body: string, g: {
   why?: string | null; concept?: string | null; praise?: string | null;
 }): number {
   return Number(
-    getDb().prepare(`
+    q(`
       INSERT INTO derivations (attempt_id, body, verdict, score, first_error, why, concept, praise, created_at)
       VALUES (?,?,?,?,?,?,?,?,?)
     `).run(
@@ -301,26 +299,24 @@ export function saveDerivation(attemptId: number, body: string, g: {
 }
 
 export function getDerivation(attemptId: number): Derivation | null {
-  return (getDb()
-    .prepare('SELECT * FROM derivations WHERE attempt_id = ? ORDER BY id DESC LIMIT 1')
+  return (q('SELECT * FROM derivations WHERE attempt_id = ? ORDER BY id DESC LIMIT 1')
     .get(attemptId) as Derivation | undefined) ?? null;
 }
 
 /** 「我覺得我對」 — flag a grade I disagree with, so it can be looked at again. */
 export function disputeDerivation(id: number) {
-  getDb().prepare('UPDATE derivations SET disputed = 1 WHERE id = ?').run(id);
+  q('UPDATE derivations SET disputed = 1 WHERE id = ?').run(id);
 }
 
 // ── 語言 ───────────────────────────────────────────────────────────────────
 
 export function getLanguage(): Lang {
-  const row = getDb().prepare('SELECT language FROM settings WHERE id = 1').get() as
+  const row = q('SELECT language FROM settings WHERE id = 1').get() as
     { language: string } | undefined;
   return row?.language === 'zh' ? 'zh' : 'en';
 }
 
 export function setLanguage(lang: Lang) {
-  getDb()
-    .prepare('INSERT INTO settings (id, language) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET language = excluded.language')
+  q('INSERT INTO settings (id, language) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET language = excluded.language')
     .run(lang);
 }

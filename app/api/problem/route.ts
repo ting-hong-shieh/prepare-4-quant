@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { q } from '@/lib/db';
 
 const FIELDS = [
   'title', 'title_en', 'topic', 'difficulty',
@@ -23,7 +23,7 @@ export async function PATCH(req: Request) {
     if (!sets.length) throw new Error('沒有要更新的欄位');
 
     args.push(id);
-    getDb().prepare(`UPDATE problems SET ${sets.join(', ')} WHERE id = ?`).run(...args);
+    q(`UPDATE problems SET ${sets.join(', ')} WHERE id = ?`).run(...args);
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });

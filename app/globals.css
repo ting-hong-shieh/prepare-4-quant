@@ -107,13 +107,16 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ── shared type ─────────────────────────────────────────────────────────── */
-.mono { font-family: var(--font-mono), ui-monospace, monospace; }
-.display { font-family: var(--font-display), Impact, sans-serif; }
-.serif { font-family: var(--font-serif), Georgia, serif; }
-.round { font-family: var(--font-round), var(--font-sans), sans-serif; }
+/* Every stack ends in the CJK face. JetBrains Mono, Bebas Neue and Fredoka
+   carry no Chinese glyphs, so a label like 助教 or the 中 in the language
+   toggle rendered as tofu without it. */
+.mono { font-family: var(--font-mono), var(--font-tc), ui-monospace, monospace; }
+.display { font-family: var(--font-display), var(--font-tc), Impact, sans-serif; }
+.serif { font-family: var(--font-serif), var(--font-tc), Georgia, serif; }
+.round { font-family: var(--font-round), var(--font-tc), sans-serif; }
 
 .eyebrow {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), var(--font-tc), monospace;
   font-size: 10px;
   font-weight: 400;
   letter-spacing: .22em;

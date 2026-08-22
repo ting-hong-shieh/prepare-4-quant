@@ -36,7 +36,9 @@ function inline(text: string) {
 
 function prose(text: string) {
   return escapeHtml(text)
+    // Bold first: **x** must not be eaten by the single-asterisk rule below.
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>');
 }
 
